@@ -49,7 +49,7 @@ Always read [references/human-writing-style.md](references/human-writing-style.m
   - Add `## Common Problems`, `## FAQ`, or `## Troubleshooting` when useful.
   - Add `## How to Use UgPhone for [Task]` or `## Step-by-Step Setup` when the topic is procedural.
   - Add `## Why Use UgPhone for [Scenario]?` when the topic is value-led rather than procedural.
-- End with a conclusion and a clear CTA such as trying UgPhone for free.
+- End with a conclusion whose heading is only `Conclusion` or the natural equivalent in the output language. Put a clear CTA in the final paragraph, never in the heading.
 
 ### 4. Run a human-voice revision
 
@@ -88,6 +88,7 @@ Always read [references/human-writing-style.md](references/human-writing-style.m
 
 - Default to a `.docx` deliverable when the user explicitly asks for Word output, a downloadable document, or a file they can review visually.
 - Keep the article package as an intermediate artifact: `Title`, `SEO Metadata`, `Article Body`, and `Image Plan`.
+- Treat `Image Plan` as internal build and validation data. Never render the Image Plan heading, table, or entries in the final `.docx` unless the user explicitly asks to see them.
 - If a source `.docx` exists and contains screenshots, preserve those screenshots in the new document unless the user asks for a clean text-only version.
 - Before rewriting a source `.docx` with images, run `scripts/inspect_source_docx.py --source-docx <input.docx> --out <source-sequence.md>` and use the report to understand which text and section surrounds each image.
 - Insert every preserved image into `Article Body` with a standalone marker such as `<!-- SOURCE_IMAGE:1 -->` at the exact semantic position where it belongs in the rewritten section.
@@ -98,6 +99,7 @@ Always read [references/human-writing-style.md](references/human-writing-style.m
 - In each matching `Image Plan` entry, add `Source Image: <number>` so the builder can apply the planned alt text to that source image.
 - Treat image-marker validation failures as rewrite failures. Fix the article package instead of allowing automatic distribution or moving unused images to an appendix.
 - Treat the script output as the default Word deliverable.
+- Keep the Word deliverable reader-facing: include the title block, SEO metadata, article body, inline source images, and captions; omit the internal Image Plan section entirely.
 - Use only the bundled Python DOCX scripts for generation and verification.
 - Require the builder's post-save structural verification to pass before delivery.
 
@@ -119,7 +121,7 @@ Always read [references/human-writing-style.md](references/human-writing-style.m
 - `Title`
 - `SEO Metadata`
 - `Article Body`
-- `Image Plan`
+- `Image Plan` as an internal artifact; omit it from the final `.docx` and user-facing response unless requested.
 - `Publishing Notes` only when the user asks for backend-ready output.
 - `Docx Deliverable` when the user asks for a Word file.
 

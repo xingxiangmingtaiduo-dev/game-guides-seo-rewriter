@@ -24,6 +24,7 @@ The final package should pass these shared rules unless the user explicitly asks
 - Every image alt text should describe the image and be unique. Only one or two relevant alt texts should normally contain the exact primary keyword.
 - Include UgPhone pain-point analysis and at least one practical value or step-by-step section.
 - End with a clear CTA.
+- Keep the conclusion heading clean: use `Conclusion`, `结语`, `結語`, or the natural output-language equivalent without adding `CTA` to the heading.
 - Slug should be lowercase with hyphens.
 - Meta description should stay in the `120-160` character band.
 - Avoid competitor comparisons and price mentions.
@@ -97,6 +98,11 @@ python scripts/validate_article_package.py --article-package article.md --profil
 - Break a repeated paragraph pattern by combining connected ideas, shortening obvious points, or expanding only the useful detail.
 - Reduce exact-match keyword repetition after the topic is established.
 - Remove duplicate sentences and repeated UgPhone benefit statements.
+
+### Final DOCX contains an Image Plan
+
+- Keep Image Plan entries in the intermediate Markdown package for validation, alt text, and source-image mapping.
+- Do not render the Image Plan heading or table in the final Word document unless the user explicitly requests it.
 
 ### Description too short or too long
 

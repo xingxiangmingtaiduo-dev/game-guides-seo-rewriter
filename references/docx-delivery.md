@@ -41,6 +41,8 @@ Paragraph explaining the same feature or step shown by the source image.
 7. Require the builder's post-save structural verification to pass before delivery.
 8. For English, Spanish, or Portuguese output, set `Output Language` in `SEO Metadata` before building so the helper headings and captions stay consistent.
 
+Keep `Image Plan` internal throughout this workflow. The builder reads it for validation and image metadata but does not place it in the final Word document.
+
 ## Script usage
 
 Text-only:
@@ -60,10 +62,11 @@ python scripts/build_docx.py --article-package article.md --source-docx source.d
 - Applies a compact, guide-friendly Word layout.
 - Writes a title block and SEO metadata table.
 - Converts the `Article Body` Markdown into headings, paragraphs, bullets, and numbered steps.
-- Converts the `Image Plan` into a table.
+- Reads the `Image Plan` for validation, source-image mapping, and alt text without rendering it in the final document.
 - Inserts source screenshots exactly where their `SOURCE_IMAGE` markers appear.
 - Rejects missing, duplicated, swapped, or out-of-range source-image markers.
 - Applies mapped image-plan alt text to the corresponding Word image metadata.
+- Normalizes a conclusion heading such as `Conclusion + CTA`, `结语与 CTA`, or `結語與 CTA` to a clean language-appropriate conclusion title while keeping the CTA paragraph.
 - Reopens the generated `.docx` and verifies its image count and image binary order before reporting success.
 
 ## Guardrails
@@ -75,3 +78,4 @@ python scripts/build_docx.py --article-package article.md --source-docx source.d
 - If the new SEO structure conflicts with the source image order, revise or merge sections so topic relevance and image order are both preserved.
 - If the article package does not parse cleanly, fix the package instead of hand-editing the script output in Word.
 - Treat any post-save structural verification failure as a build failure and fix the article package or builder before delivery.
+- Never append an Image Plan heading, table, checklist, or image-rule block to the final `.docx` unless the user explicitly requests that internal data.

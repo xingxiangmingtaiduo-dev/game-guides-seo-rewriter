@@ -51,7 +51,7 @@ Use 4 to 6 H2 sections. Pick the most suitable pattern:
 4. `## Key Benefits`
 5. `## Common Problems` or `## FAQ`
 6. `## How to Use [Feature]`
-7. `## Conclusion + CTA`
+7. `## Conclusion`, with the CTA in the final paragraph
 
 ### Pattern B: How-to tutorial
 
@@ -61,7 +61,7 @@ Use 4 to 6 H2 sections. Pick the most suitable pattern:
 4. `## What You Need Before You Start`
 5. `## How to Use UgPhone for [Task]`
 6. `## Common Problems` or `## Troubleshooting`
-7. `## Conclusion + CTA`
+7. `## Conclusion`, with the CTA in the final paragraph
 
 ### Pattern C: Use-case article
 
@@ -71,7 +71,7 @@ Use 4 to 6 H2 sections. Pick the most suitable pattern:
 4. `## Why Use UgPhone for [Scenario]?`
 5. `## How It Works`
 6. `## Common Problems` or `## FAQ`
-7. `## Conclusion + CTA`
+7. `## Conclusion`, with the CTA in the final paragraph
 
 ## Writing rules
 

@@ -58,7 +58,7 @@ Use this as the default article skeleton:
 5. `## Common Problems` or `## FAQ`
 6. `## How UgPhone Helps` or `## Why Choose UgPhone...`
 7. `## How to Use UgPhone with [Game Name]`
-8. `Conclusion + CTA`
+8. `Conclusion`, with the CTA in the final paragraph rather than the heading
 
 Apply these section rules:
 

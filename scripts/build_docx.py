@@ -50,6 +50,7 @@ def get_language_pack(output_language: str):
     packs = {
         "english": {
             "introduction": "Introduction",
+            "conclusion": "Conclusion",
             "metadata_heading": "SEO Metadata",
             "metadata_field": "Field",
             "metadata_value": "Value",
@@ -66,6 +67,7 @@ def get_language_pack(output_language: str):
         },
         "spanish": {
             "introduction": "Introducción",
+            "conclusion": "Conclusión",
             "metadata_heading": "Metadatos SEO",
             "metadata_field": "Campo",
             "metadata_value": "Valor",
@@ -82,6 +84,7 @@ def get_language_pack(output_language: str):
         },
         "portuguese": {
             "introduction": "Introdução",
+            "conclusion": "Conclusão",
             "metadata_heading": "Metadados SEO",
             "metadata_field": "Campo",
             "metadata_value": "Valor",
@@ -98,6 +101,7 @@ def get_language_pack(output_language: str):
         },
         "chinese": {
             "introduction": "引言",
+            "conclusion": "结语",
             "metadata_heading": "SEO 元数据",
             "metadata_field": "字段",
             "metadata_value": "内容",
@@ -114,6 +118,7 @@ def get_language_pack(output_language: str):
         },
         "traditional_chinese": {
             "introduction": "前言",
+            "conclusion": "結語",
             "metadata_heading": "SEO 資訊",
             "metadata_field": "欄位",
             "metadata_value": "內容",
@@ -476,7 +481,16 @@ def add_metadata_table(doc: Document, metadata, labels: dict):
 
 
 def add_section_blocks(doc: Document, section, labels: dict, source_images_by_index=None, image_alt_by_index=None):
-    heading_text = labels["introduction"] if section["title"] == "__INTRO__" else section["title"]
+    if section["title"] == "__INTRO__":
+        heading_text = labels["introduction"]
+    elif re.fullmatch(
+        r"(?:Conclusion(?:\s*\+\s*CTA)?|结语(?:与\s*CTA)?|結語(?:與\s*CTA)?|结论(?:与\s*CTA)?|結論(?:與\s*CTA)?)",
+        section["title"],
+        re.IGNORECASE,
+    ):
+        heading_text = labels["conclusion"]
+    else:
+        heading_text = section["title"]
     heading = doc.add_paragraph(heading_text, style="Heading 1")
     set_paragraph_spacing(heading, before=18, after=10, line=1.25)
 
@@ -626,8 +640,6 @@ def build_docx(article_package: Path, output_path: Path, source_docx: Path | Non
 
     for section in article_sections:
         add_section_blocks(doc, section, labels, source_images_by_index, image_alt_by_index)
-
-    add_image_plan_table(doc, image_plan, labels)
 
     doc.save(output_path)
     verify_built_docx(output_path, source_images)

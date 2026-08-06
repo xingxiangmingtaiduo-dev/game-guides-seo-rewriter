@@ -81,7 +81,7 @@ def parse_article_package(md_text: str):
     if paragraphs:
         intro = paragraphs[1] if paragraphs and paragraphs[0].startswith("# ") and len(paragraphs) > 1 else paragraphs[0]
     conclusion_match = re.search(
-        r"^##\s+(?:Conclusion\s*\+\s*CTA|Conclusion|结语与\s*CTA|結語與\s*CTA|结论与\s*CTA|結論與\s*CTA)\s*$",
+        r"^##\s+(?:Conclusion(?:\s*\+\s*CTA)?|结语(?:与\s*CTA)?|結語(?:與\s*CTA)?|结论(?:与\s*CTA)?|結論(?:與\s*CTA)?)\s*$",
         article_text,
         re.IGNORECASE | re.MULTILINE,
     )
@@ -355,6 +355,20 @@ def validate(data: dict, profile: str):
     add_check("seo_title_contains_primary", bool(primary) and primary in seo_title, f"SEO title: {seo_title}")
     add_check("seo_title_length", len(seo_title) <= 60, f"SEO title length: {len(seo_title)}")
     add_check("h2_count", 4 <= len(h2s) <= 6, f"H2 count: {len(h2s)}")
+    conclusion_h2s = [
+        h2
+        for h2 in h2s
+        if re.fullmatch(
+            r"(?:Conclusion(?:\s*\+\s*CTA)?|结语(?:与\s*CTA)?|結語(?:與\s*CTA)?|结论(?:与\s*CTA)?|結論(?:與\s*CTA)?)",
+            h2,
+            re.IGNORECASE,
+        )
+    ]
+    add_check(
+        "conclusion_heading_without_cta",
+        bool(conclusion_h2s) and all("cta" not in h2.casefold() for h2 in conclusion_h2s),
+        f"Conclusion heading: {conclusion_h2s[0] if conclusion_h2s else 'missing'}",
+    )
     add_check("output_language", True, f"Output language: {output_language}; metric: {length_metric}")
 
     body_count = count_length_units(plain_text, length_metric)

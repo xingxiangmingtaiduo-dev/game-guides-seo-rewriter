@@ -21,13 +21,15 @@ The final package should pass these shared rules unless the user explicitly asks
 - If `SEO Metadata` contains `Output Language`, the validator should use the matching length metric automatically.
 - Introduction and conclusion should both be substantial, roughly around 200 Chinese characters each.
 - Plan 6 to 10 images by default.
-- Every image alt text should include the primary keyword.
+- Every image alt text should describe the image and be unique. Only one or two relevant alt texts should normally contain the exact primary keyword.
 - Include UgPhone pain-point analysis and at least one practical value or step-by-step section.
 - End with a clear CTA.
 - Slug should be lowercase with hyphens.
 - Meta description should stay in the `120-160` character band.
 - Avoid competitor comparisons and price mentions.
 - Keep the Markdown structure valid and predictable.
+- Avoid stock AI phrases, duplicated sentences, repetitive section previews and recaps, excessive exact-match keywords, and mechanical transition chains.
+- Do not fabricate first-person experience or anecdotes as a shortcut to sounding human.
 
 ## Profile-specific expectations
 
@@ -85,7 +87,16 @@ python scripts/validate_article_package.py --article-package article.md --profil
 ### Image plan failure
 
 - Expand the image plan to 6 to 10 entries unless the user approved another range.
-- Put the primary keyword into every alt text naturally, not by stuffing.
+- Describe each image accurately and keep alt text unique.
+- Put the exact primary keyword into only one or two relevant alt texts; use natural variants elsewhere.
+
+### Human-style failure
+
+- Replace flagged stock phrases with a concrete fact, action, constraint, or consequence.
+- Delete repeated introductions to sections and summary sentences that add no new information.
+- Break a repeated paragraph pattern by combining connected ideas, shortening obvious points, or expanding only the useful detail.
+- Reduce exact-match keyword repetition after the topic is established.
+- Remove duplicate sentences and repeated UgPhone benefit statements.
 
 ### Description too short or too long
 

@@ -74,6 +74,8 @@ Apply these section rules:
 - Keep the article scannable with H2s, bullets, numbered steps, and bold emphasis where helpful.
 - Prefer useful specifics over filler.
 - Avoid generic intros and weak conclusion paragraphs.
+- Revise the first draft using [human-writing-style.md](human-writing-style.md); remove stock openings, mechanical transitions, repetitive recaps, and exact-match keyword stuffing.
+- Keep source-supported uncertainty, tradeoffs, and exceptions instead of making every recommendation sound universal.
 - Do not use unsupported superlatives.
 - Do not mention competitors or pricing.
 

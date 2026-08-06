@@ -1,6 +1,6 @@
 ---
 name: game-guides-seo-rewriter
-description: Rewrite source notes, drafts, briefs, outlines, research, or existing documents into UgPhone-style SEO articles. Use when Codex must turn game reviews, game guides, product explainers, feature tutorials, cloud-phone how-to articles, troubleshooting notes, or other product-tech materials into publish-ready SEO content with keyword planning, SEO metadata, structured H1/H2 sections, natural UgPhone integration, FAQ or tutorial sections, CTA, image suggestions, backend-ready Markdown, or a delivered Word `.docx` article that preserves source images, including multilingual output such as English or Spanish from Chinese source material.
+description: Rewrite source notes, drafts, briefs, outlines, research, or existing documents into natural, editor-quality UgPhone SEO articles that avoid formulaic AI prose. Use when Codex must turn game reviews, game guides, product explainers, feature tutorials, cloud-phone how-to articles, troubleshooting notes, or other product-tech materials into publish-ready SEO content with a human voice, keyword planning, SEO metadata, structured H1/H2 sections, natural UgPhone integration, FAQ or tutorial sections, CTA, image suggestions, backend-ready Markdown, or a delivered Word `.docx` article that preserves source images, including multilingual output such as English or Spanish from Chinese source material.
 ---
 
 # Game Guides SEO Rewriter
@@ -9,7 +9,7 @@ description: Rewrite source notes, drafts, briefs, outlines, research, or existi
 
 Turn raw source material into a player-first SEO game guide that solves a real player problem before introducing UgPhone as the technical solution. Produce a clean article package, not just body copy: include metadata, keyword framing, structure, and publishing notes when needed.
 
-Read [references/sop-distilled.md](references/sop-distilled.md) when you need the detailed game-guide rules, title formulas, topic taxonomy, or QA checklist for game content. Read [references/product-tech-seo.md](references/product-tech-seo.md) when the source material is about UgPhone, cloud phones, product features, tutorials, use cases, troubleshooting, or other technology topics. Read [references/checklist-enforcement.md](references/checklist-enforcement.md) when you need to enforce the final article checklist or diagnose why a draft failed. Read [references/backend-publishing.md](references/backend-publishing.md) only when the user wants backend-ready Markdown, upload fields, or UgPhone CMS publishing notes. Read [references/docx-delivery.md](references/docx-delivery.md) when the user wants a `.docx` deliverable or wants source screenshots carried into the rewritten document.
+Always read [references/human-writing-style.md](references/human-writing-style.md) before drafting or revising an article. Read [references/sop-distilled.md](references/sop-distilled.md) when you need the detailed game-guide rules, title formulas, topic taxonomy, or QA checklist for game content. Read [references/product-tech-seo.md](references/product-tech-seo.md) when the source material is about UgPhone, cloud phones, product features, tutorials, use cases, troubleshooting, or other technology topics. Read [references/checklist-enforcement.md](references/checklist-enforcement.md) when you need to enforce the final article checklist or diagnose why a draft failed. Read [references/backend-publishing.md](references/backend-publishing.md) only when the user wants backend-ready Markdown, upload fields, or UgPhone CMS publishing notes. Read [references/docx-delivery.md](references/docx-delivery.md) when the user wants a `.docx` deliverable or wants source screenshots carried into the rewritten document.
 
 ## Run The Workflow
 
@@ -51,7 +51,20 @@ Read [references/sop-distilled.md](references/sop-distilled.md) when you need th
   - Add `## Why Use UgPhone for [Scenario]?` when the topic is value-led rather than procedural.
 - End with a conclusion and a clear CTA such as trying UgPhone for free.
 
-### 4. Keep the brand insertion natural
+### 4. Run a human-voice revision
+
+- Treat the first draft as raw material. Revise it once for editorial voice before validation.
+- Ground paragraphs in source-supported details, actual player decisions, concrete workflow friction, or observable outcomes.
+- Delete meta-writing such as `in this comprehensive guide`, `this article will explore`, and repeated section previews.
+- Vary sentence and paragraph rhythm. Do not make every paragraph follow the same claim-explanation-summary pattern.
+- Use direct transitions or no transition when the logic is already clear. Avoid chains of `Furthermore`, `Moreover`, `Additionally`, or their translated equivalents.
+- Keep useful nuance and limitations. Do not make every feature sound effortless, revolutionary, seamless, or suitable for everyone.
+- Never invent first-person testing, personal experience, quotations, community consensus, or anecdotes to simulate authenticity.
+- Use the exact primary keyword selectively. Prefer pronouns, game or feature names, and natural variants once the topic is clear.
+- Write image alt text for the actual image. Use the exact primary keyword in only a small number of relevant alt texts instead of every entry.
+- Make the conclusion short and decisive. Do not repeat every H2 in summary form before the CTA.
+
+### 5. Keep the brand insertion natural
 
 - Lead with player value, not product marketing.
 - For game articles, use UgPhone to solve concrete pain points such as heat, battery drain, disconnects, device limits, or multi-instance farming.
@@ -59,7 +72,7 @@ Read [references/sop-distilled.md](references/sop-distilled.md) when you need th
 - Avoid unsupported superlatives such as `best`, `number one`, or `strongest`.
 - Do not mention competitors or pricing unless the user explicitly asks and provides approved language.
 
-### 5. Package the deliverable
+### 6. Package the deliverable
 
 - Obey the user's requested body-length range first.
 - If the user gives a target range, include `Body Length Target` in `SEO Metadata` so the validator can enforce it.
@@ -67,11 +80,11 @@ Read [references/sop-distilled.md](references/sop-distilled.md) when you need th
 - If the user wants the rewrite to stay close to the source article's scale, preserve that scale instead of expanding automatically.
 - If no length guidance exists, default to 1500 to 1800 words for long-form SEO pieces.
 - Provide SEO metadata: slug or URL, SEO title, primary and long-tail keywords, meta description, and tags.
-- Suggest image placements and alt text that use the core keyword naturally.
+- Suggest image placements with descriptive, non-duplicated alt text. Use the exact primary keyword in one or two high-value alt texts when relevant; use natural variants elsewhere.
 - If the output is meant for the UgPhone CMS, follow [references/backend-publishing.md](references/backend-publishing.md) for Markdown, link syntax, and upload field rules.
 - If the output is meant to be a Word document, follow [references/docx-delivery.md](references/docx-delivery.md) and use `scripts/build_docx.py` to turn the article package into a `.docx`.
 
-### 6. Build `.docx` output when requested
+### 7. Build `.docx` output when requested
 
 - Default to a `.docx` deliverable when the user explicitly asks for Word output, a downloadable document, or a file they can review visually.
 - Keep the article package as an intermediate artifact: `Title`, `SEO Metadata`, `Article Body`, and `Image Plan`.
@@ -88,7 +101,7 @@ Read [references/sop-distilled.md](references/sop-distilled.md) when you need th
 - Use only the bundled Python DOCX scripts for generation and verification.
 - Require the builder's post-save structural verification to pass before delivery.
 
-### 7. Enforce the final checklist before shipping
+### 8. Enforce the final checklist before shipping
 
 - Save the article package to a temporary `.md` file before final delivery.
 - Run `scripts/validate_article_package.py --article-package <package.md> --profile <game-guide|product-tech|auto>`.
@@ -96,6 +109,7 @@ Read [references/sop-distilled.md](references/sop-distilled.md) when you need th
 - If `SEO Metadata` includes `Output Language`, expect the validator to switch between Chinese-style length checks and word-based checks automatically.
 - If the validator reports failures, revise the article and run it again until all required checks pass or until the user explicitly accepts an exception.
 - Treat a length failure as a rewrite task, not as a reporting-only task. Compress the introduction, repeated explanations, and FAQ answers first before cutting the main actionable guide.
+- Treat human-style failures as rewrite tasks. Remove flagged stock phrases, duplicate sentences, keyword stuffing, repetitive transitions, and empty recap paragraphs before delivery.
 - Treat image-count failures as planning failures. Add or remove planned images so the package lands in the target range.
 - Before delivery, confirm that source-image markers match the complete source sequence and that each marker sits inside the section discussing the same topic as its surrounding source text.
 - Do not claim compliance from memory. Use the validator output.

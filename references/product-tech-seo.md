@@ -81,9 +81,11 @@ Use 4 to 6 H2 sections. Pick the most suitable pattern:
 - Explain workflow pains concretely.
 - Avoid unsupported claims, competitor naming, and pricing unless approved.
 - Prefer plain, useful wording over marketing-heavy adjectives.
+- Revise the first draft using [human-writing-style.md](human-writing-style.md). Remove generic technology scene-setting, repeated benefit stacks, and claims that every workflow is seamless or effortless.
+- Mention constraints and fit honestly. Do not imply that one setup is ideal for every user.
 
 ## Image plan
 
 - Plan 6 to 10 images by default unless the user approves another range.
-- Every alt text should include the exact primary keyword.
+- Make every alt text describe the actual image. Use the exact primary keyword in only one or two relevant alt texts and use natural variants elsewhere.
 - Prefer product screenshots, workflow diagrams, setup steps, admin views, or annotated interface captures.

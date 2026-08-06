@@ -1,0 +1,4 @@
+interface:
+  display_name: "SEO Docx Rewriter"
+  short_description: "Rewrite docs into multilingual SEO docx files with ordered inline images"
+  default_prompt: "Use $game-guides-seo-rewriter to rewrite my source document into a checked SEO article in the requested language, keep every source image in its matching section and original order, and generate and verify the docx with the bundled Python workflow."

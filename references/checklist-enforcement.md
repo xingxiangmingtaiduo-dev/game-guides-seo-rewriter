@@ -1,0 +1,109 @@
+# Checklist Enforcement
+
+Use this reference when the draft needs to satisfy the final SEO article checklist before delivery.
+
+The skill supports two main profiles:
+
+- `game-guide`
+- `product-tech`
+
+## Required checks
+
+The final package should pass these shared rules unless the user explicitly asks for an exception:
+
+- One primary keyword for the full page.
+- H1 and SEO title both contain the primary keyword.
+- SEO title stays within 60 characters when possible.
+- Use 4 to 6 clear H2 sections in the article body.
+- Total body length should stay in the configured target band.
+- If `SEO Metadata` contains `Body Length Target`, use that range instead of the default.
+- If no explicit range is set, use the `1500-1800` target band by default.
+- If `SEO Metadata` contains `Output Language`, the validator should use the matching length metric automatically.
+- Introduction and conclusion should both be substantial, roughly around 200 Chinese characters each.
+- Plan 6 to 10 images by default.
+- Every image alt text should include the primary keyword.
+- Include UgPhone pain-point analysis and at least one practical value or step-by-step section.
+- End with a clear CTA.
+- Slug should be lowercase with hyphens.
+- Meta description should stay in the `120-160` character band.
+- Avoid competitor comparisons and price mentions.
+- Keep the Markdown structure valid and predictable.
+
+## Profile-specific expectations
+
+### `game-guide`
+
+- Keep game search intent explicit.
+- Include a gameplay or progression H2.
+- Include a UgPhone use or AFK workflow section.
+
+### `product-tech`
+
+- Keep the article anchored in a real workflow, feature, troubleshooting case, or use case.
+- Include either a `How to Use UgPhone...` section or a strong `Why Use UgPhone...` section.
+- Do not force gameplay-specific sections such as `What is [Game Name]?`.
+
+## Validation workflow
+
+1. Draft the article package.
+2. Run:
+
+```bash
+python scripts/validate_article_package.py --article-package article.md --profile auto
+```
+
+3. Read the failing checks first.
+4. Revise the draft.
+5. Re-run until the required checks pass.
+
+## How to fix common failures
+
+### Body too long
+
+- Cut repeated explanations before cutting unique strategy.
+- Shorten the introduction first if it is bloated.
+- Compress FAQ answers to direct, practical responses.
+- Remove duplicated UgPhone framing if the same point appears in multiple sections.
+- If the brief asked you to stay close to the source length, add `Body Length Target` to metadata and validate against that narrower range.
+
+### Body too short
+
+- Add more actionable gameplay or workflow detail in the main guide section.
+- Expand FAQ only with real search-intent questions.
+- Strengthen the UgPhone tutorial with concrete steps instead of generic benefits.
+
+### Primary keyword missing from H1 or SEO title
+
+- Rewrite the H1 and title immediately.
+- Do not rely on close variants when the exact primary keyword was already chosen.
+
+### Too many or too few H2 sections
+
+- Merge overlapping H2 sections or split overloaded ones.
+- Keep the structure easy to scan instead of adding decorative headings.
+
+### Image plan failure
+
+- Expand the image plan to 6 to 10 entries unless the user approved another range.
+- Put the primary keyword into every alt text naturally, not by stuffing.
+
+### Description too short or too long
+
+- Keep the description focused on what the reader gets from the article.
+- Remove filler adjectives before cutting practical nouns and verbs.
+
+### Wrong profile assumptions
+
+- If the article is about a product feature, tutorial, workflow, or troubleshooting topic, validate it with `product-tech`.
+- If the article is about a game's progression, events, AFK farming, beginner help, or FAQs, validate it with `game-guide`.
+
+### Wrong language assumptions
+
+- If the source is Chinese but the requested output is English, Spanish, or another language, write the article in the requested language rather than translating section by section mechanically.
+- Add `Output Language` to metadata so the validator can use word-based checks for Latin-script outputs.
+
+## Notes on metrics
+
+- The validator measures Chinese-heavy drafts by CJK character count in the article body as the closest deterministic proxy to the `1500-1800` requirement.
+- If `Body Length Target` is present, the validator uses that range as the deterministic proxy instead.
+- If the user asks for a very different article size, treat that request as an intentional override and record it in metadata.

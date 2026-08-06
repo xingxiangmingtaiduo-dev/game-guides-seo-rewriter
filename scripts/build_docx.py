@@ -1,0 +1,605 @@
+from __future__ import annotations
+
+import argparse
+import hashlib
+import re
+from io import BytesIO
+from pathlib import Path
+
+from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.shared import Inches, Pt, RGBColor
+
+
+def metadata_to_dict(metadata):
+    return {key: value for key, value in metadata}
+
+
+def normalize_output_language(value: str) -> str:
+    normalized = value.strip().lower()
+    aliases = {
+        "en": "english",
+        "english": "english",
+        "es": "spanish",
+        "español": "spanish",
+        "espanol": "spanish",
+        "spanish": "spanish",
+        "pt": "portuguese",
+        "portuguese": "portuguese",
+        "português": "portuguese",
+        "portugues": "portuguese",
+    }
+    return aliases.get(normalized, normalized or "english")
+
+
+def get_language_pack(output_language: str):
+    language = normalize_output_language(output_language)
+    packs = {
+        "english": {
+            "introduction": "Introduction",
+            "metadata_heading": "SEO Metadata",
+            "metadata_field": "Field",
+            "metadata_value": "Value",
+            "title_subtitle": "Generated from the SEO article package. Preserve source screenshots inline when available.",
+            "source_screenshots": "Source Screenshots",
+            "source_caption_prefix": "Source screenshot",
+            "image_plan": "Image Plan",
+            "image_label": "Image",
+            "image_alt": "Alt Text",
+            "image_purpose": "Purpose",
+            "additional_source_screenshots": "Additional Source Screenshots",
+            "appendix_note": "These screenshots were preserved from the source document but not placed in the main article flow.",
+            "appendix_images": "Appendix Images",
+        },
+        "spanish": {
+            "introduction": "Introducción",
+            "metadata_heading": "Metadatos SEO",
+            "metadata_field": "Campo",
+            "metadata_value": "Valor",
+            "title_subtitle": "Generado a partir del paquete SEO del artículo. Conserva capturas originales cuando están disponibles.",
+            "source_screenshots": "Capturas originales",
+            "source_caption_prefix": "Captura original",
+            "image_plan": "Plan de imágenes",
+            "image_label": "Imagen",
+            "image_alt": "Texto alt",
+            "image_purpose": "Uso",
+            "additional_source_screenshots": "Capturas originales adicionales",
+            "appendix_note": "Estas capturas se conservaron del documento fuente, pero no se ubicaron en el flujo principal del artículo.",
+            "appendix_images": "Imágenes del apéndice",
+        },
+        "portuguese": {
+            "introduction": "Introdução",
+            "metadata_heading": "Metadados SEO",
+            "metadata_field": "Campo",
+            "metadata_value": "Valor",
+            "title_subtitle": "Gerado a partir do pacote SEO do artigo. Mantém capturas originais quando disponíveis.",
+            "source_screenshots": "Capturas de origem",
+            "source_caption_prefix": "Captura de origem",
+            "image_plan": "Plano de imagens",
+            "image_label": "Imagem",
+            "image_alt": "Texto alt",
+            "image_purpose": "Uso",
+            "additional_source_screenshots": "Capturas de origem adicionais",
+            "appendix_note": "Estas capturas foram preservadas do documento de origem, mas não foram colocadas no fluxo principal do artigo.",
+            "appendix_images": "Imagens do apêndice",
+        },
+    }
+    return packs.get(language, packs["english"])
+
+
+def set_run_font(run, name="Calibri", size=11, bold=False, color=None, italic=False):
+    run.font.name = name
+    run._element.rPr.rFonts.set(qn("w:ascii"), name)
+    run._element.rPr.rFonts.set(qn("w:hAnsi"), name)
+    run._element.rPr.rFonts.set(qn("w:eastAsia"), "Microsoft YaHei")
+    run.font.size = Pt(size)
+    run.font.bold = bold
+    run.font.italic = italic
+    if color:
+        run.font.color.rgb = RGBColor.from_string(color.replace("#", ""))
+
+
+def set_paragraph_spacing(paragraph, before=0, after=6, line=1.25):
+    fmt = paragraph.paragraph_format
+    fmt.space_before = Pt(before)
+    fmt.space_after = Pt(after)
+    fmt.line_spacing = line
+
+
+def set_cell_width(cell, width_dxa):
+    tc_pr = cell._tc.get_or_add_tcPr()
+    tc_w = tc_pr.find(qn("w:tcW"))
+    if tc_w is None:
+        tc_w = OxmlElement("w:tcW")
+        tc_pr.append(tc_w)
+    tc_w.set(qn("w:w"), str(width_dxa))
+    tc_w.set(qn("w:type"), "dxa")
+
+
+def set_table_indent(table, indent_dxa=120):
+    tbl_pr = table._tbl.tblPr
+    tbl_ind = tbl_pr.find(qn("w:tblInd"))
+    if tbl_ind is None:
+        tbl_ind = OxmlElement("w:tblInd")
+        tbl_pr.append(tbl_ind)
+    tbl_ind.set(qn("w:w"), str(indent_dxa))
+    tbl_ind.set(qn("w:type"), "dxa")
+
+
+def set_table_layout_fixed(table):
+    tbl_pr = table._tbl.tblPr
+    tbl_layout = tbl_pr.find(qn("w:tblLayout"))
+    if tbl_layout is None:
+        tbl_layout = OxmlElement("w:tblLayout")
+        tbl_pr.append(tbl_layout)
+    tbl_layout.set(qn("w:type"), "fixed")
+
+
+def set_cell_margins(cell, top=80, start=120, bottom=80, end=120):
+    tc_pr = cell._tc.get_or_add_tcPr()
+    tc_mar = tc_pr.find(qn("w:tcMar"))
+    if tc_mar is None:
+        tc_mar = OxmlElement("w:tcMar")
+        tc_pr.append(tc_mar)
+    for tag, value in [("top", top), ("start", start), ("bottom", bottom), ("end", end)]:
+        el = tc_mar.find(qn(f"w:{tag}"))
+        if el is None:
+            el = OxmlElement(f"w:{tag}")
+            tc_mar.append(el)
+        el.set(qn("w:w"), str(value))
+        el.set(qn("w:type"), "dxa")
+
+
+def style_table_borders(table):
+    tbl_pr = table._tbl.tblPr
+    borders = tbl_pr.find(qn("w:tblBorders"))
+    if borders is None:
+        borders = OxmlElement("w:tblBorders")
+        tbl_pr.append(borders)
+    for edge in ["top", "left", "bottom", "right", "insideH", "insideV"]:
+        el = borders.find(qn(f"w:{edge}"))
+        if el is None:
+            el = OxmlElement(f"w:{edge}")
+            borders.append(el)
+        el.set(qn("w:val"), "single")
+        el.set(qn("w:sz"), "6")
+        el.set(qn("w:space"), "0")
+        el.set(qn("w:color"), "D9E2F2")
+
+
+def shade_cell(cell, fill):
+    tc_pr = cell._tc.get_or_add_tcPr()
+    shd = tc_pr.find(qn("w:shd"))
+    if shd is None:
+        shd = OxmlElement("w:shd")
+        tc_pr.append(shd)
+    shd.set(qn("w:fill"), fill)
+
+
+def parse_article_package(md_text: str):
+    lines = md_text.splitlines()
+    metadata = []
+    image_plan = []
+    article_title = ""
+    article_sections = []
+    current_section = None
+    mode = None
+    i = 0
+
+    while i < len(lines):
+        stripped = lines[i].strip()
+
+        if stripped == "## SEO Metadata":
+            mode = "metadata"
+            i += 1
+            continue
+        if stripped == "## Article Body":
+            mode = "article"
+            i += 1
+            continue
+        if stripped == "## Image Plan":
+            mode = "image_plan"
+            i += 1
+            continue
+
+        if mode == "metadata":
+            if stripped.startswith("- ") and ":" in stripped:
+                key, value = stripped[2:].split(":", 1)
+                metadata.append((key.strip(), value.strip().strip("`")))
+            i += 1
+            continue
+
+        if mode == "article":
+            if stripped.startswith("# "):
+                article_title = stripped[2:].strip()
+                i += 1
+                continue
+            if stripped.startswith("## "):
+                if current_section:
+                    article_sections.append(current_section)
+                current_section = {"title": stripped[3:].strip(), "blocks": []}
+                i += 1
+                continue
+            if stripped.startswith("### "):
+                if current_section is None:
+                    current_section = {"title": "__INTRO__", "blocks": []}
+                current_section["blocks"].append(("h3", stripped[4:].strip()))
+                i += 1
+                continue
+            image_marker = re.fullmatch(r"<!--\s*SOURCE_IMAGE\s*:\s*(\d+)\s*-->", stripped, re.IGNORECASE)
+            if image_marker:
+                if current_section is None:
+                    current_section = {"title": "__INTRO__", "blocks": []}
+                current_section["blocks"].append(("source_image", int(image_marker.group(1))))
+                i += 1
+                continue
+            if re.match(r"^\d+\.\s+\*\*.+\*\*", stripped):
+                if current_section is None:
+                    current_section = {"title": "__INTRO__", "blocks": []}
+                lead = re.sub(r"^\d+\.\s+\*\*(.+?)\*\*\s*$", r"\1", stripped)
+                item_lines = [lead]
+                j = i + 1
+                while j < len(lines) and lines[j].startswith("   "):
+                    item_lines.append(lines[j].strip())
+                    j += 1
+                current_section["blocks"].append(("number_item", " ".join(item_lines)))
+                i = j
+                continue
+            if stripped.startswith("- "):
+                if current_section is None:
+                    current_section = {"title": "__INTRO__", "blocks": []}
+                items = []
+                while i < len(lines) and lines[i].strip().startswith("- "):
+                    items.append(lines[i].strip()[2:].strip())
+                    i += 1
+                current_section["blocks"].append(("bullets", items))
+                continue
+            if stripped:
+                if current_section is None:
+                    current_section = {"title": "__INTRO__", "blocks": []}
+                para_lines = [stripped]
+                j = i + 1
+                while j < len(lines):
+                    nxt = lines[j].strip()
+                    if not nxt:
+                        break
+                    if nxt.startswith("#") or nxt.startswith("## ") or nxt.startswith("### ") or nxt.startswith("- "):
+                        break
+                    if re.fullmatch(r"<!--\s*SOURCE_IMAGE\s*:\s*\d+\s*-->", nxt, re.IGNORECASE):
+                        break
+                    if re.match(r"^\d+\.\s+\*\*.+", nxt):
+                        break
+                    para_lines.append(nxt)
+                    j += 1
+                current_section["blocks"].append(("paragraph", " ".join(para_lines)))
+                i = j
+                continue
+            i += 1
+            continue
+
+        if mode == "image_plan":
+            if re.match(r"^\d+\.\s+", stripped):
+                title = re.sub(r"^\d+\.\s+", "", stripped)
+                alt = ""
+                purpose = ""
+                source_image = None
+                j = i + 1
+                while j < len(lines) and lines[j].startswith("   - "):
+                    detail = lines[j].strip()[2:].strip()
+                    if detail.startswith("Alt:"):
+                        alt = detail.split(":", 1)[1].strip().strip("`")
+                    elif detail.startswith("Purpose:") or detail.startswith("用途:") or detail.startswith("Uso:"):
+                        purpose = detail.split(":", 1)[1].strip()
+                    elif any(detail.startswith(prefix) for prefix in ("Source Image:", "原图序号:", "Imagen de origen:")):
+                        match = re.search(r"\d+", detail)
+                        source_image = int(match.group(0)) if match else None
+                    j += 1
+                image_plan.append({
+                    "title": title,
+                    "alt": alt,
+                    "purpose": purpose,
+                    "source_image": source_image,
+                })
+                i = j
+                continue
+            i += 1
+            continue
+
+        i += 1
+
+    if current_section:
+        article_sections.append(current_section)
+
+    return article_title, metadata, article_sections, image_plan
+
+
+def extract_source_images(source_docx: Path):
+    source_doc = Document(source_docx)
+    images = []
+    for index, shape in enumerate(source_doc.inline_shapes, 1):
+        blip = shape._inline.graphic.graphicData.pic.blipFill.blip
+        part = source_doc.part.related_parts[blip.embed]
+        images.append({"index": index, "name": Path(part.partname).name, "blob": part.blob})
+    return images
+
+
+def verify_built_docx(output_path: Path, expected_images):
+    if not output_path.exists() or output_path.stat().st_size == 0:
+        raise ValueError(f"Generated DOCX is missing or empty: {output_path}")
+
+    try:
+        built_doc = Document(output_path)
+    except Exception as exc:
+        raise ValueError(f"Generated DOCX cannot be reopened: {output_path}") from exc
+
+    if not any(paragraph.text.strip() for paragraph in built_doc.paragraphs):
+        raise ValueError("Generated DOCX contains no readable paragraph text.")
+
+    built_images = extract_source_images(output_path)
+    if len(built_images) != len(expected_images):
+        raise ValueError(
+            "Generated DOCX image count does not match the source image count. "
+            f"Expected {len(expected_images)}, found {len(built_images)}."
+        )
+
+    expected_hashes = [hashlib.sha256(image["blob"]).hexdigest() for image in expected_images]
+    built_hashes = [hashlib.sha256(image["blob"]).hexdigest() for image in built_images]
+    if built_hashes != expected_hashes:
+        raise ValueError("Generated DOCX source images are missing, altered, or out of order.")
+
+
+def build_doc_styles(doc: Document):
+    section = doc.sections[0]
+    section.top_margin = Inches(1)
+    section.bottom_margin = Inches(1)
+    section.left_margin = Inches(1)
+    section.right_margin = Inches(1)
+    section.header_distance = Inches(0.492)
+    section.footer_distance = Inches(0.492)
+
+    styles = doc.styles
+    normal = styles["Normal"]
+    normal.font.name = "Calibri"
+    normal._element.rPr.rFonts.set(qn("w:ascii"), "Calibri")
+    normal._element.rPr.rFonts.set(qn("w:hAnsi"), "Calibri")
+    normal._element.rPr.rFonts.set(qn("w:eastAsia"), "Microsoft YaHei")
+    normal.font.size = Pt(11)
+
+    for style_name, size, color, before, after in [
+        ("Heading 1", 16, "#2E74B5", 18, 10),
+        ("Heading 2", 13, "#2E74B5", 14, 7),
+        ("Heading 3", 12, "#1F4D78", 10, 5),
+    ]:
+        style = styles[style_name]
+        style.font.name = "Calibri"
+        style._element.rPr.rFonts.set(qn("w:ascii"), "Calibri")
+        style._element.rPr.rFonts.set(qn("w:hAnsi"), "Calibri")
+        style._element.rPr.rFonts.set(qn("w:eastAsia"), "Microsoft YaHei")
+        style.font.size = Pt(size)
+        style.font.bold = True
+        style.font.color.rgb = RGBColor.from_string(color.replace("#", ""))
+        pf = style.paragraph_format
+        pf.space_before = Pt(before)
+        pf.space_after = Pt(after)
+        pf.line_spacing = 1.25
+
+
+def add_title_block(doc: Document, title: str, labels: dict):
+    para = doc.add_paragraph()
+    para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    set_paragraph_spacing(para, before=0, after=10, line=1.15)
+    run = para.add_run(title)
+    set_run_font(run, size=20, bold=True, color="#2E74B5")
+
+    subtitle = doc.add_paragraph()
+    set_paragraph_spacing(subtitle, before=0, after=10, line=1.15)
+    run = subtitle.add_run(labels["title_subtitle"])
+    set_run_font(run, size=10, color="#5B6573")
+
+
+def add_metadata_table(doc: Document, metadata, labels: dict):
+    heading = doc.add_paragraph(labels["metadata_heading"], style="Heading 2")
+    set_paragraph_spacing(heading, before=14, after=7, line=1.25)
+
+    table = doc.add_table(rows=1, cols=2)
+    table.autofit = False
+    set_table_layout_fixed(table)
+    set_table_indent(table, 120)
+    style_table_borders(table)
+    widths = [2700, 6660]
+
+    for idx, text in enumerate([labels["metadata_field"], labels["metadata_value"]]):
+        cell = table.rows[0].cells[idx]
+        set_cell_width(cell, widths[idx])
+        set_cell_margins(cell)
+        shade_cell(cell, "E8EEF5")
+        para = cell.paragraphs[0]
+        set_paragraph_spacing(para, before=0, after=0, line=1.15)
+        set_run_font(para.add_run(text), bold=True)
+
+    for key, value in metadata:
+        row = table.add_row().cells
+        for idx, cell in enumerate(row):
+            set_cell_width(cell, widths[idx])
+            set_cell_margins(cell)
+        p0 = row[0].paragraphs[0]
+        set_paragraph_spacing(p0, before=0, after=0, line=1.15)
+        set_run_font(p0.add_run(key), bold=True)
+        p1 = row[1].paragraphs[0]
+        set_paragraph_spacing(p1, before=0, after=0, line=1.15)
+        set_run_font(p1.add_run(value))
+
+
+def add_section_blocks(doc: Document, section, labels: dict, source_images_by_index=None, image_alt_by_index=None):
+    heading_text = labels["introduction"] if section["title"] == "__INTRO__" else section["title"]
+    heading = doc.add_paragraph(heading_text, style="Heading 1")
+    set_paragraph_spacing(heading, before=18, after=10, line=1.25)
+
+    pending_numbers = []
+    for block_type, payload in section["blocks"]:
+        if block_type == "number_item":
+            pending_numbers.append(payload)
+            continue
+
+        if pending_numbers:
+            for item in pending_numbers:
+                para = doc.add_paragraph(style="List Number")
+                set_paragraph_spacing(para, before=0, after=4, line=1.25)
+                set_run_font(para.add_run(item))
+            pending_numbers = []
+
+        if block_type == "paragraph":
+            para = doc.add_paragraph()
+            set_paragraph_spacing(para, before=0, after=6, line=1.25)
+            set_run_font(para.add_run(payload))
+        elif block_type == "h3":
+            para = doc.add_paragraph(payload, style="Heading 3")
+            set_paragraph_spacing(para, before=10, after=5, line=1.25)
+        elif block_type == "bullets":
+            for item in payload:
+                para = doc.add_paragraph(style="List Bullet")
+                set_paragraph_spacing(para, before=0, after=4, line=1.25)
+                set_run_font(para.add_run(item))
+        elif block_type == "source_image":
+            image = (source_images_by_index or {}).get(payload)
+            if image is None:
+                raise ValueError(f"SOURCE_IMAGE:{payload} does not exist in the source document.")
+            alt_text = (image_alt_by_index or {}).get(payload, "")
+            caption = alt_text or f"{labels['source_caption_prefix']} {payload:02d} - {image['name']}"
+            add_picture_with_caption(doc, image["blob"], caption, alt_text=alt_text)
+
+    if pending_numbers:
+        for item in pending_numbers:
+            para = doc.add_paragraph(style="List Number")
+            set_paragraph_spacing(para, before=0, after=4, line=1.25)
+            set_run_font(para.add_run(item))
+
+
+def add_picture_with_caption(doc: Document, image_blob: bytes, caption: str, width=Inches(6.15), alt_text=""):
+    pic_para = doc.add_paragraph()
+    pic_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    set_paragraph_spacing(pic_para, before=4, after=3, line=1.0)
+    inline_shape = pic_para.add_run().add_picture(BytesIO(image_blob), width=width)
+    if alt_text:
+        doc_pr = inline_shape._inline.docPr
+        doc_pr.set("descr", alt_text)
+        doc_pr.set("title", alt_text)
+
+    cap_para = doc.add_paragraph()
+    cap_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    set_paragraph_spacing(cap_para, before=0, after=8, line=1.0)
+    set_run_font(cap_para.add_run(caption), size=9, color="#5B6573", italic=True)
+
+
+def collect_source_image_markers(article_sections):
+    return [
+        payload
+        for section in article_sections
+        for block_type, payload in section["blocks"]
+        if block_type == "source_image"
+    ]
+
+
+def validate_source_image_markers(source_images, article_sections):
+    markers = collect_source_image_markers(article_sections)
+    expected = list(range(1, len(source_images) + 1))
+    if markers != expected:
+        raise ValueError(
+            "Source image placement must preserve every image exactly once and in order. "
+            f"Expected markers {expected}, found {markers}. Add standalone markers such as "
+            "<!-- SOURCE_IMAGE:1 --> inside the matching rewritten sections."
+        )
+
+
+def add_image_gallery(doc: Document, heading_text: str, images, labels: dict):
+    if not images:
+        return
+    gallery_heading = doc.add_paragraph(heading_text, style="Heading 3")
+    set_paragraph_spacing(gallery_heading, before=10, after=6, line=1.25)
+    for image in images:
+        add_picture_with_caption(
+            doc,
+            image["blob"],
+            f"{labels['source_caption_prefix']} {image['index']:02d} - {image['name']}",
+        )
+
+
+def add_image_plan_table(doc: Document, image_plan, labels: dict):
+    heading = doc.add_paragraph(labels["image_plan"], style="Heading 1")
+    set_paragraph_spacing(heading, before=18, after=10, line=1.25)
+
+    table = doc.add_table(rows=1, cols=3)
+    table.autofit = False
+    set_table_layout_fixed(table)
+    set_table_indent(table, 120)
+    style_table_borders(table)
+    widths = [2400, 2900, 4060]
+
+    for idx, text in enumerate([labels["image_label"], labels["image_alt"], labels["image_purpose"]]):
+        cell = table.rows[0].cells[idx]
+        set_cell_width(cell, widths[idx])
+        set_cell_margins(cell)
+        shade_cell(cell, "E8EEF5")
+        para = cell.paragraphs[0]
+        set_paragraph_spacing(para, before=0, after=0, line=1.15)
+        set_run_font(para.add_run(text), bold=True)
+
+    for item in image_plan:
+        title = item["title"]
+        alt = item["alt"]
+        purpose = item["purpose"]
+        row = table.add_row().cells
+        for idx, value in enumerate([title, alt, purpose]):
+            cell = row[idx]
+            set_cell_width(cell, widths[idx])
+            set_cell_margins(cell)
+            para = cell.paragraphs[0]
+            set_paragraph_spacing(para, before=0, after=0, line=1.15)
+            set_run_font(para.add_run(value))
+
+
+def build_docx(article_package: Path, output_path: Path, source_docx: Path | None):
+    article_title, metadata, article_sections, image_plan = parse_article_package(article_package.read_text(encoding="utf-8"))
+    metadata_map = metadata_to_dict(metadata)
+    labels = get_language_pack(metadata_map.get("Output Language", "english"))
+    source_images = extract_source_images(source_docx) if source_docx else []
+    if source_images:
+        validate_source_image_markers(source_images, article_sections)
+    elif collect_source_image_markers(article_sections):
+        raise ValueError("The article package contains SOURCE_IMAGE markers, but no source document images were provided.")
+    source_images_by_index = {image["index"]: image for image in source_images}
+    image_alt_by_index = {
+        item["source_image"]: item["alt"]
+        for item in image_plan
+        if item["source_image"] is not None and item["alt"]
+    }
+
+    doc = Document()
+    build_doc_styles(doc)
+    add_title_block(doc, article_title, labels)
+    add_metadata_table(doc, metadata, labels)
+
+    for section in article_sections:
+        add_section_blocks(doc, section, labels, source_images_by_index, image_alt_by_index)
+
+    add_image_plan_table(doc, image_plan, labels)
+
+    doc.save(output_path)
+    verify_built_docx(output_path, source_images)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Build a Word document from a game-guides article package.")
+    parser.add_argument("--article-package", required=True, type=Path, help="Markdown article package with Title, SEO Metadata, Article Body, and Image Plan.")
+    parser.add_argument("--out", required=True, type=Path, help="Output .docx path.")
+    parser.add_argument("--source-docx", type=Path, help="Optional source .docx to preserve screenshots from.")
+    args = parser.parse_args()
+
+    build_docx(args.article_package, args.out, args.source_docx)
+    print(args.out)
+
+
+if __name__ == "__main__":
+    main()

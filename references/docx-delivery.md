@@ -5,7 +5,7 @@ Use this reference when the user wants the rewritten article as a Word document.
 ## Default behavior
 
 - Treat the SEO article package as the source of truth.
-- Build a `.docx` unless the user explicitly prefers Markdown only.
+- Build a `.docx` plus a reader-facing `.md` unless the user explicitly prefers one format only.
 - Preserve source screenshots when a source `.docx` is available.
 - Keep every source image in its corresponding rewritten section and preserve the original image order exactly.
 - Prefer stable inline image placement over floating layouts.
@@ -38,10 +38,13 @@ Paragraph explaining the same feature or step shown by the source image.
 
 5. Include `Source Image: 1` in the matching `Image Plan` item so its alt text is written into the Word image metadata.
 6. Run `scripts/build_docx.py`. If the source contains images, pass `--source-docx`.
-7. Require the builder's post-save structural verification to pass before delivery.
-8. For English, Spanish, or Portuguese output, set `Output Language` in `SEO Metadata` before building so the helper headings and captions stay consistent.
+7. Run `scripts/build_markdown.py` with the same article package. Pass `--source-docx` so the Markdown copy receives extracted image assets and relative links.
+8. Require both builders' post-save structural verification to pass before delivery.
+9. For English, Spanish, or Portuguese output, set `Output Language` in `SEO Metadata` before building so the helper headings and captions stay consistent.
 
 Keep `Image Plan` internal throughout this workflow. The builder reads it for validation and image metadata but does not place it in the final Word document.
+
+Follow [markdown-delivery.md](markdown-delivery.md) for the paired Markdown file. Do not give the internal article package to the user as a substitute for the reader-facing Markdown output.
 
 ## Script usage
 

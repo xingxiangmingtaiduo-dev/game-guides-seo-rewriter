@@ -31,6 +31,7 @@ The final package should pass these shared rules unless the user explicitly asks
 - Keep the Markdown structure valid and predictable.
 - Avoid stock AI phrases, duplicated sentences, repetitive section previews and recaps, excessive exact-match keywords, and mechanical transition chains.
 - Do not fabricate first-person experience or anecdotes as a shortcut to sounding human.
+- Deliver a reader-facing Markdown copy with preserved headings, emphasis, lists, and image positions. Keep Image Plan and source markers private.
 
 ## Profile-specific expectations
 
@@ -103,6 +104,13 @@ python scripts/validate_article_package.py --article-package article.md --profil
 
 - Keep Image Plan entries in the intermediate Markdown package for validation, alt text, and source-image mapping.
 - Do not render the Image Plan heading or table in the final Word document unless the user explicitly requests it.
+
+### Final Markdown exposes internal data or loses formatting
+
+- Build the public file with `scripts/build_markdown.py`; do not copy the internal article package directly.
+- Preserve H1/H2, meaningful `**bold emphasis**`, lists, and links.
+- Replace every source marker with a relative image link and extract images to the paired assets folder.
+- Reject output containing `Image Plan`, `SOURCE_IMAGE`, missing image links, or altered image order.
 
 ### Description too short or too long
 

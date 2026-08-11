@@ -1,4 +1,4 @@
 interface:
   display_name: "SEO Docx Rewriter"
-  short_description: "Create natural multilingual SEO articles and verified docx files"
-  default_prompt: "Use $game-guides-seo-rewriter to rewrite my source into a natural, editor-quality SEO article in the requested language, remove formulaic AI prose, keep every source image in its matching section and original order, and generate and verify the docx with the bundled Python workflow."
+  short_description: "Create natural SEO articles with verified DOCX and Markdown"
+  default_prompt: "Use $game-guides-seo-rewriter to rewrite my source into a natural SEO article, preserve every source image in order, and deliver verified DOCX and reader-facing Markdown files."

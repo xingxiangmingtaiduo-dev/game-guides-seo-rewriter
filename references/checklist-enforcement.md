@@ -109,6 +109,7 @@ python scripts/validate_article_package.py --article-package article.md --profil
 
 - Build the public file with `scripts/build_markdown.py`; do not copy the internal article package directly.
 - Preserve H1/H2, meaningful `**bold emphasis**`, lists, and links.
+- Confirm that the public Markdown includes language-appropriate introduction and conclusion headings.
 - Replace every source marker with a relative image link and extract images to the paired assets folder.
 - Reject output containing `Image Plan`, `SOURCE_IMAGE`, missing image links, or altered image order.
 

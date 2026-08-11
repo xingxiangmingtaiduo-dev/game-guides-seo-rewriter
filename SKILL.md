@@ -106,7 +106,7 @@ Always read [references/human-writing-style.md](references/human-writing-style.m
 - Treat image-marker validation failures as rewrite failures. Fix the article package instead of allowing automatic distribution or moving unused images to an appendix.
 - Treat the script output as the default Word deliverable.
 - Keep the Word deliverable reader-facing: include the title block, SEO metadata, article body, inline source images, and captions; omit the internal Image Plan section entirely.
-- Keep the Markdown deliverable reader-facing: use YAML frontmatter for SEO metadata, preserve H1/H2, `**bold emphasis**`, lists, and links, and omit the internal Image Plan entirely.
+- Keep the Markdown deliverable reader-facing: use YAML frontmatter for SEO metadata, add the language-appropriate introduction heading, preserve the remaining H1/H2 structure, `**bold emphasis**`, lists, and links, and omit the internal Image Plan entirely.
 - Use only the bundled Python DOCX and Markdown scripts for generation and verification.
 - Require both builders' post-save structural verification to pass before delivery.
 

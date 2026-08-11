@@ -49,6 +49,21 @@ def extract_article_body(md_text: str) -> str:
     return match.group("body").strip()
 
 
+def add_introduction_heading(article_body: str, heading_text: str) -> str:
+    lines = article_body.splitlines()
+    h1_index = next((index for index, line in enumerate(lines) if re.fullmatch(r"#\s+\S.*", line.strip())), None)
+    if h1_index is None:
+        raise ValueError("Article Body contains no H1 heading.")
+
+    first_content_index = h1_index + 1
+    while first_content_index < len(lines) and not lines[first_content_index].strip():
+        first_content_index += 1
+    if first_content_index < len(lines) and lines[first_content_index].strip().casefold() == f"## {heading_text}".casefold():
+        return article_body
+
+    return "\n".join(lines[: h1_index + 1] + ["", f"## {heading_text}"] + lines[h1_index + 1 :])
+
+
 def marker_sequence(article_body: str) -> list[int]:
     markers = []
     for line in article_body.splitlines():
@@ -89,6 +104,7 @@ def build_markdown(
     body = extract_article_body(md_text)
     metadata_map = metadata_to_dict(metadata)
     labels = get_language_pack(metadata_map.get("Output Language", "english"))
+    body = add_introduction_heading(body, labels["introduction"])
     body = "\n".join(
         f"## {labels['conclusion']}" if CONCLUSION_RE.fullmatch(line.strip()) else line
         for line in body.splitlines()
@@ -137,11 +153,11 @@ def build_markdown(
 
     output = f"{render_frontmatter(article_title, metadata)}\n\n{rendered_body}\n"
     output_path.write_text(output, encoding="utf-8", newline="\n")
-    verify_markdown(output_path, source_images, resolved_assets_dir)
+    verify_markdown(output_path, source_images, resolved_assets_dir, labels)
     return output_path, resolved_assets_dir
 
 
-def verify_markdown(output_path: Path, source_images, assets_dir: Path | None) -> None:
+def verify_markdown(output_path: Path, source_images, assets_dir: Path | None, labels: dict) -> None:
     if not output_path.exists() or output_path.stat().st_size == 0:
         raise ValueError(f"Generated Markdown is missing or empty: {output_path}")
     text = output_path.read_text(encoding="utf-8")
@@ -149,6 +165,10 @@ def verify_markdown(output_path: Path, source_images, assets_dir: Path | None) -
         raise ValueError("Generated Markdown exposes internal Image Plan data or source markers.")
     if not re.search(r"^#\s+\S", text, re.MULTILINE):
         raise ValueError("Generated Markdown contains no H1 heading.")
+    if not re.search(rf"^##\s+{re.escape(labels['introduction'])}\s*$", text, re.MULTILINE):
+        raise ValueError("Generated Markdown is missing the language-appropriate introduction heading.")
+    if not re.search(rf"^##\s+{re.escape(labels['conclusion'])}\s*$", text, re.MULTILINE):
+        raise ValueError("Generated Markdown is missing the language-appropriate conclusion heading.")
     if source_images:
         if assets_dir is None:
             raise ValueError("Generated Markdown is missing its image assets directory.")

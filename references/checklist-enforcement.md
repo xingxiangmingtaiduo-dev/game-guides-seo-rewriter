@@ -19,6 +19,7 @@ The final package should pass these shared rules unless the user explicitly asks
 - If `SEO Metadata` contains `Body Length Target`, use that range instead of the default.
 - If no explicit range is set, use the `1500-1800` target band by default.
 - If `SEO Metadata` contains `Output Language`, the validator should use the matching length metric automatically.
+- Supported delivery languages are Traditional Chinese, English, Portuguese, Spanish, Thai, Indonesian, and Vietnamese. Traditional Chinese uses CJK-character length, Thai uses Thai-script character length, and the other supported Latin-script languages use Unicode-aware word length.
 - Introduction and conclusion should both be substantial, roughly around 200 Chinese characters each.
 - Plan 6 to 10 images by default.
 - Every image alt text should describe the image and be unique. Only one or two relevant alt texts should normally contain the exact primary keyword.
@@ -127,6 +128,7 @@ python scripts/validate_article_package.py --article-package article.md --profil
 
 - If the source is Chinese but the requested output is English, Spanish, or another language, write the article in the requested language rather than translating section by section mechanically.
 - Add `Output Language` to metadata so the validator can use word-based checks for Latin-script outputs.
+- Localize the introduction and conclusion headings, SEO document labels, image captions, keywords, and CTA in the requested language. Do not leave English interface text around an otherwise translated article.
 
 ## Notes on metrics
 

@@ -24,7 +24,7 @@ SOURCE_IMAGE_RE = re.compile(
     re.IGNORECASE,
 )
 CONCLUSION_RE = re.compile(
-    r"^##\s+(?:Conclusion(?:\s*\+\s*CTA)?|结语(?:与\s*CTA)?|結語(?:與\s*CTA)?|结论(?:与\s*CTA)?|結論(?:與\s*CTA)?)\s*$",
+    r"^##\s+(?:Conclusion(?:\s*\+\s*CTA)?|Conclusão|Conclusión|结语(?:与\s*CTA)?|結語(?:與\s*CTA)?|结论(?:与\s*CTA)?|結論(?:與\s*CTA)?|สรุป|Kesimpulan|Kết luận)\s*$",
     re.IGNORECASE,
 )
 

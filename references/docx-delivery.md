@@ -40,7 +40,7 @@ Paragraph explaining the same feature or step shown by the source image.
 6. Run `scripts/build_docx.py`. If the source contains images, pass `--source-docx`.
 7. Run `scripts/build_markdown.py` with the same article package. Pass `--source-docx` so the Markdown copy receives extracted image assets and relative links.
 8. Require both builders' post-save structural verification to pass before delivery.
-9. For English, Spanish, or Portuguese output, set `Output Language` in `SEO Metadata` before building so the helper headings and captions stay consistent.
+9. For Traditional Chinese, English, Portuguese, Spanish, Thai, Indonesian, or Vietnamese output, set `Output Language` in `SEO Metadata` before building so headings, metadata labels, and captions stay consistent.
 
 Keep `Image Plan` internal throughout this workflow. The builder reads it for validation and image metadata but does not place it in the final Word document.
 

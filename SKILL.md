@@ -78,6 +78,10 @@ Always read [references/human-writing-style.md](references/human-writing-style.m
 - Obey the user's requested body-length range first.
 - If the user gives a target range, include `Body Length Target` in `SEO Metadata` so the validator can enforce it.
 - If the user asks for a different output language, include `Output Language` in `SEO Metadata`.
+- Support `Traditional Chinese`, `English`, `Portuguese`, `Spanish`, `Thai`, `Indonesian`, and `Vietnamese` as explicit `Output Language` values.
+- If the user requests several supported languages at once, create and validate a separate article package, DOCX, reader-facing Markdown file, and image-assets folder for every language. Reuse the source images in their original order for each language; do not combine multiple full translations into one DOCX unless the user explicitly requests a bilingual or multilingual document.
+- For Thai output, measure requested length by Thai-script characters. For Traditional Chinese, measure CJK characters. For English, Portuguese, Spanish, Indonesian, and Vietnamese, measure words with Unicode-aware tokenization.
+- Localize introduction, conclusion, metadata labels, captions, keyword phrases, and CTA language throughout the public DOCX and Markdown; do not translate only the article body while leaving English document chrome.
 - If the user wants the rewrite to stay close to the source article's scale, preserve that scale instead of expanding automatically.
 - If no length guidance exists, default to 1500 to 1800 words for long-form SEO pieces.
 - Provide SEO metadata: slug or URL, SEO title, primary and long-tail keywords, meta description, and tags.

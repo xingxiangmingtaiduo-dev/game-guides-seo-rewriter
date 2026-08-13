@@ -81,7 +81,7 @@ def parse_article_package(md_text: str):
     if paragraphs:
         intro = paragraphs[1] if paragraphs and paragraphs[0].startswith("# ") and len(paragraphs) > 1 else paragraphs[0]
     conclusion_match = re.search(
-        r"^##\s+(?:Conclusion(?:\s*\+\s*CTA)?|结语(?:与\s*CTA)?|結語(?:與\s*CTA)?|结论(?:与\s*CTA)?|結論(?:與\s*CTA)?)\s*$",
+        r"^##\s+(?:Conclusion(?:\s*\+\s*CTA)?|Conclusão|Conclusión|结语(?:与\s*CTA)?|結語(?:與\s*CTA)?|结论(?:与\s*CTA)?|結論(?:與\s*CTA)?|สรุป|Kesimpulan|Kết luận)\s*$",
         article_text,
         re.IGNORECASE | re.MULTILINE,
     )
@@ -105,20 +105,26 @@ def count_cjk(text: str) -> int:
 
 
 def count_words(text: str) -> int:
-    return len(re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:['’-][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)*", text))
+    return len(re.findall(r"[^\W_]+(?:['’-][^\W_]+)*", text, re.UNICODE))
+
+
+def count_thai(text: str) -> int:
+    return len(re.findall(r"[\u0e01-\u0e3a\u0e40-\u0e4e]", text))
 
 
 def normalize_output_language(value: str) -> str:
-    normalized = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii").strip().lower()
+    normalized = unicodedata.normalize("NFKC", value).strip().casefold()
     aliases = {
         "en": "english",
         "eng": "english",
         "english": "english",
         "es": "spanish",
+        "español": "spanish",
         "espanol": "spanish",
         "spanish": "spanish",
         "pt": "portuguese",
         "portuguese": "portuguese",
+        "português": "portuguese",
         "portugues": "portuguese",
         "fr": "french",
         "french": "french",
@@ -129,26 +135,49 @@ def normalize_output_language(value: str) -> str:
         "zh": "chinese",
         "chinese": "chinese",
         "simplified chinese": "chinese",
-        "traditional chinese": "chinese",
+        "traditional chinese": "traditional_chinese",
+        "zh-tw": "traditional_chinese",
+        "zh-hk": "traditional_chinese",
+        "繁体中文": "traditional_chinese",
+        "繁體中文": "traditional_chinese",
         "ja": "japanese",
         "japanese": "japanese",
         "ko": "korean",
         "korean": "korean",
+        "th": "thai",
+        "thai": "thai",
+        "ภาษาไทย": "thai",
+        "id": "indonesian",
+        "id-id": "indonesian",
+        "indonesian": "indonesian",
+        "bahasa indonesia": "indonesian",
+        "vi": "vietnamese",
+        "vi-vn": "vietnamese",
+        "vietnamese": "vietnamese",
+        "tieng viet": "vietnamese",
+        "tiếng việt": "vietnamese",
     }
     return aliases.get(normalized, normalized or "chinese")
 
 
 def choose_length_metric(language: str) -> str:
-    return "word" if language in {"english", "spanish", "portuguese", "french", "german", "italian"} else "cjk"
+    if language == "thai":
+        return "thai"
+    return "word" if language in {"english", "spanish", "portuguese", "french", "german", "italian", "indonesian", "vietnamese"} else "cjk"
 
 
 def count_length_units(text: str, metric: str) -> int:
-    return count_words(text) if metric == "word" else count_cjk(text)
+    if metric == "word":
+        return count_words(text)
+    if metric == "thai":
+        return count_thai(text)
+    return count_cjk(text)
 
 
 def normalize_match_text(text: str) -> str:
-    normalized = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
-    return re.sub(r"\s+", " ", normalized).strip().lower()
+    normalized = unicodedata.normalize("NFKD", text).casefold()
+    normalized = "".join(char for char in normalized if not unicodedata.combining(char))
+    return re.sub(r"\s+", " ", normalized).strip()
 
 
 def heading_matches_any(h2s: list[str], patterns: list[str]) -> bool:
@@ -359,7 +388,7 @@ def validate(data: dict, profile: str):
         h2
         for h2 in h2s
         if re.fullmatch(
-            r"(?:Conclusion(?:\s*\+\s*CTA)?|结语(?:与\s*CTA)?|結語(?:與\s*CTA)?|结论(?:与\s*CTA)?|結論(?:與\s*CTA)?)",
+            r"(?:Conclusion(?:\s*\+\s*CTA)?|Conclusão|Conclusión|结语(?:与\s*CTA)?|結語(?:與\s*CTA)?|结论(?:与\s*CTA)?|結論(?:與\s*CTA)?|สรุป|Kesimpulan|Kết luận)",
             h2,
             re.IGNORECASE,
         )
@@ -441,14 +470,27 @@ def validate(data: dict, profile: str):
     has_ugphone_value = heading_matches_any(
         h2s,
         [
+            "UgPhone",
             "How UgPhone Helps",
             "Why Choose UgPhone",
             "Why Use UgPhone",
+            "How to Use UgPhone",
+            "Como usar UgPhone",
+            "Cómo usar UgPhone",
             "为什么使用 UgPhone",
             "為什麼使用 UgPhone",
             "UgPhone 如何帮助",
             "UgPhone 如何幫助",
             "使用 UgPhone 的理由",
+            "如何使用 UgPhone",
+            "UgPhone ช่วย",
+            "ใช้ UgPhone",
+            "UgPhone membantu",
+            "menggunakan UgPhone",
+            "Cara menggunakan UgPhone",
+            "UgPhone hỗ trợ",
+            "dùng UgPhone",
+            "Cách dùng UgPhone",
         ],
     )
     add_check("ugphone_value_section", has_ugphone_value, "UgPhone value section scan")
@@ -456,17 +498,17 @@ def validate(data: dict, profile: str):
     if effective_profile == "game-guide":
         add_check(
             "core_topic_section",
-            heading_matches_any(h2s, ["What is", "Que es", "Qué es", "O que e", "What Is", "什么是", "什麼是"]),
+            heading_matches_any(h2s, ["What is", "Que es", "Qué es", "O que e", "What Is", "什么是", "什麼是", "是什么", "是什麼", "คืออะไร", "เกมอะไร", "Apa itu", "là gì"]),
             "Game topic section scan",
         )
         add_check(
             "main_action_section",
-            heading_matches_any(h2s, ["How to", "Guide", "Tips", "AFK", "Farm", "Como", "Cómo", "Guia", "Guía", "攻略", "挂机", "掛機", "如何", "教学", "教學"]),
+            heading_matches_any(h2s, ["How to", "Guide", "Tips", "AFK", "Farm", "Como", "Cómo", "Guia", "Guía", "攻略", "挂机", "掛機", "如何", "教学", "教學", "อย่างไร", "วิธี", "Cara", "Panduan", "Bagaimana", "Cách", "Hướng dẫn", "Làm thế nào"]),
             "Gameplay or action section scan",
         )
         add_check(
             "ugphone_tutorial_or_flow",
-            heading_matches_any(h2s, ["UgPhone", "How to Use UgPhone", "Como usar UgPhone", "Cómo usar UgPhone", "使用 UgPhone", "使用UgPhone", "如何使用 UgPhone"]),
+            heading_matches_any(h2s, ["UgPhone", "How to Use UgPhone", "Como usar UgPhone", "Cómo usar UgPhone", "使用 UgPhone", "使用UgPhone", "如何使用 UgPhone", "ใช้ UgPhone", "Menggunakan UgPhone", "Cara menggunakan UgPhone", "Dùng UgPhone", "Cách dùng UgPhone"]),
             "UgPhone game workflow scan",
         )
     else:
@@ -490,7 +532,7 @@ def validate(data: dict, profile: str):
         "cta_present",
         bool(
             re.search(
-                r"try ugphone|download|free|free trial|descarga|descargar|prueba gratis|prueba gratuita|baixar|teste gratis|teste gratuito|\u514d\u8d39\u4f53\u9a8c|\u514d\u8cbb\u8a66\u7528|\u7acb\u5373\u4e0b\u8f7d|\u7acb\u5373\u4e0b\u8f09|\u9a6c\u4e0a\u8bd5\u7528|\u99ac\u4e0a\u8a66\u7528",
+                r"try ugphone|download|free|free trial|descarga|descargar|prueba gratis|prueba gratuita|baixar|teste gratis|teste gratuito|ดาวน์โหลด|ทดลองใช้ฟรี|unduh|download ugphone|uji coba gratis|coba gratis|tải xuống|tải ugphone|dùng thử miễn phí|trải nghiệm miễn phí|\u514d\u8d39\u4f53\u9a8c|\u514d\u8cbb\u8a66\u7528|\u7acb\u5373\u4e0b\u8f7d|\u7acb\u5373\u4e0b\u8f09|\u9a6c\u4e0a\u8bd5\u7528|\u99ac\u4e0a\u8a66\u7528",
                 article_text,
                 re.IGNORECASE,
             )

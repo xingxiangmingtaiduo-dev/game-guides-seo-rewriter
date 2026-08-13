@@ -8,6 +8,7 @@ Use this reference when the user wants Markdown or whenever a `.docx` article is
 - Keep SEO metadata as YAML frontmatter.
 - Include the reader-facing article body only. Never expose `Image Plan`, `SOURCE_IMAGE` markers, internal QA notes, or image rules.
 - Add the introduction heading and keep both introduction and conclusion headings natural for the output language, such as `Introdução` and `Conclusão` in Portuguese.
+- Supported localized heading pairs include `前言/結語`, `Introduction/Conclusion`, `Introdução/Conclusão`, `Introducción/Conclusión`, `บทนำ/สรุป`, `Pendahuluan/Kesimpulan`, and `Giới thiệu/Kết luận`.
 - When a source DOCX contains images, extract every image to a sibling `<markdown-stem>_assets` folder and replace each source marker with a relative Markdown image link.
 - Preserve source image count, binary content, semantic placement, and original order exactly.
 - Use descriptive image alt text from `Image Plan`; do not repeat the exact primary keyword in every alt.

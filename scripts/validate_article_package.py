@@ -525,7 +525,7 @@ def validate(data: dict, profile: str):
     if effective_profile == "game-guide":
         add_check(
             "core_topic_section",
-            heading_matches_any(h2s, ["What is", "Que es", "Qué es", "O que e", "What Is", "什么是", "什麼是", "是什么", "是什麼", "คืออะไร", "เกมอะไร", "Apa itu", "là gì"]),
+            heading_matches_any(h2s, ["What is", "Que es", "Qué es", "O que e", "What Is", "什么是", "什麼是", "是什么", "是什麼", "คืออะไร", "เกมอะไร", "Apa itu", "là gì", "hoạt động thế nào", "ทำงานอย่างไร", "模式差在哪裡"]),
             "Game topic section scan",
         )
         add_check(

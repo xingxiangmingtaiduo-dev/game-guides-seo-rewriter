@@ -20,8 +20,8 @@ The final package should pass these shared rules unless the user explicitly asks
 - If no explicit range is set, use the `1500-1800` target band by default.
 - If `SEO Metadata` contains `Output Language`, the validator should use the matching length metric automatically.
 - Supported delivery languages are Traditional Chinese, English, Portuguese, Spanish, Thai, Indonesian, and Vietnamese. Traditional Chinese uses CJK-character length, Thai uses Thai-script character length, and the other supported Latin-script languages use Unicode-aware word length.
-- Introduction and conclusion should both be substantial, roughly around 200 Chinese characters each.
-- Plan 6 to 10 images by default.
+- Introduction and conclusion should both be substantial. For Chinese, roughly 150-260 CJK characters is a useful validation band. For Thai, use a shorter 90-260 Thai-script-character band when the total requested article is only 500-600 Thai characters so the opening and closing do not consume the whole brief.
+- Plan 6 to 10 images by default. A source document with more than 10 required images may exceed this range only when the plan maps every preserved image as one complete consecutive `Source Image: 1..N` sequence.
 - Every image alt text should describe the image and be unique. Only one or two relevant alt texts should normally contain the exact primary keyword.
 - Include UgPhone pain-point analysis and at least one practical value or step-by-step section.
 - End with a clear CTA.

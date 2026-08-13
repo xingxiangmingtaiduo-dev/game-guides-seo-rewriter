@@ -56,6 +56,7 @@ def parse_article_package(md_text: str):
                 title = re.sub(r"^\d+\.\s+", "", stripped)
                 alt = ""
                 purpose = ""
+                source_image = None
                 j = i + 1
                 while j < len(lines) and lines[j].startswith("   - "):
                     detail = lines[j].strip()[2:].strip()
@@ -63,8 +64,12 @@ def parse_article_package(md_text: str):
                         alt = detail.split(":", 1)[1].strip().strip("`")
                     elif detail.startswith("\u7528\u9014:") or detail.startswith("用途:"):
                         purpose = detail.split(":", 1)[1].strip()
+                    elif detail.startswith("Source Image:"):
+                        raw_source_image = detail.split(":", 1)[1].strip()
+                        if raw_source_image.isdigit():
+                            source_image = int(raw_source_image)
                     j += 1
-                image_plan.append({"title": title, "alt": alt, "purpose": purpose})
+                image_plan.append({"title": title, "alt": alt, "purpose": purpose, "source_image": source_image})
                 i = j
                 continue
             i += 1
@@ -414,18 +419,40 @@ def validate(data: dict, profile: str):
     )
 
     intro_count = count_length_units(data["intro"], length_metric)
-    intro_lower, intro_upper = (70, 220) if length_metric == "word" else (150, 260)
+    if length_metric == "word":
+        intro_lower, intro_upper = (70, 220)
+    elif length_metric == "thai":
+        intro_lower, intro_upper = (90, 260)
+    else:
+        intro_lower, intro_upper = (150, 260)
     add_check("intro_substantial", intro_lower <= intro_count <= intro_upper, f"Intro {length_metric} count: {intro_count}")
 
     conclusion_count = count_length_units(data["conclusion"], length_metric)
-    conclusion_lower, conclusion_upper = (70, 220) if length_metric == "word" else (150, 260)
+    if length_metric == "word":
+        conclusion_lower, conclusion_upper = (70, 220)
+    elif length_metric == "thai":
+        conclusion_lower, conclusion_upper = (90, 260)
+    else:
+        conclusion_lower, conclusion_upper = (150, 260)
     add_check(
         "conclusion_substantial",
         conclusion_lower <= conclusion_count <= conclusion_upper,
         f"Conclusion {length_metric} count: {conclusion_count}",
     )
 
-    add_check("image_plan_count", 6 <= len(image_plan) <= 10, f"Image plan count: {len(image_plan)}")
+    source_image_numbers = [item.get("source_image") for item in image_plan if item.get("source_image") is not None]
+    complete_source_sequence = bool(source_image_numbers) and source_image_numbers == list(range(1, len(source_image_numbers) + 1))
+    image_plan_count_ok = 6 <= len(image_plan) <= 10 or (
+        len(image_plan) > 10
+        and len(source_image_numbers) == len(image_plan)
+        and complete_source_sequence
+    )
+    add_check(
+        "image_plan_count",
+        image_plan_count_ok,
+        f"Image plan count: {len(image_plan)}"
+        + ("; complete preserved source-image sequence" if complete_source_sequence else ""),
+    )
     normalized_alts = [re.sub(r"\s+", " ", item["alt"]).strip().casefold() for item in image_plan]
     unique_alts = bool(normalized_alts) and all(normalized_alts) and len(normalized_alts) == len(set(normalized_alts))
     primary_alt_count = (

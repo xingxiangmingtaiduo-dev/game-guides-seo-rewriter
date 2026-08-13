@@ -86,6 +86,7 @@ Always read [references/human-writing-style.md](references/human-writing-style.m
 - If no length guidance exists, default to 1500 to 1800 words for long-form SEO pieces.
 - Provide SEO metadata: slug or URL, SEO title, primary and long-tail keywords, meta description, and tags.
 - Suggest image placements with descriptive, non-duplicated alt text. Use the exact primary keyword in one or two high-value alt texts when relevant; use natural variants elsewhere.
+- When the source document contains more than 10 images and the user requires all of them preserved, the Image Plan may exceed the normal 6-10 range only when every entry maps to a complete consecutive `Source Image: 1..N` sequence. Do not drop source images merely to satisfy the normal suggested-image range.
 - If the output is meant for the UgPhone CMS, follow [references/backend-publishing.md](references/backend-publishing.md) for link syntax and upload field rules.
 - Always keep the validated article package as the internal Markdown source of truth.
 - Build a reader-facing Markdown copy with `scripts/build_markdown.py`; preserve headings, emphasis, lists, image placement, and SEO metadata while removing internal Image Plan data.

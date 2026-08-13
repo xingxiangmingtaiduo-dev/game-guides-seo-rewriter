@@ -75,6 +75,7 @@ python scripts/build_docx.py --article-package article.md --source-docx source.d
 ## Guardrails
 
 - Preserve every source image unless the user explicitly requests that specific images be removed.
+- If preserving all source images requires more than 10 Image Plan entries, keep the full consecutive source-image plan; the normal suggested-image count must not override source-image preservation.
 - Never reorder images during rewriting. Keep markers in the exact original sequence `1, 2, 3, ...`.
 - Never distribute images evenly by section and never place unmatched images in an appendix.
 - Use the source text surrounding each marker to determine the matching rewritten section; do not map images from filenames alone.

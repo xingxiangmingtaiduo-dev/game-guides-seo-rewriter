@@ -42,6 +42,17 @@ def markdown_alt(value: str) -> str:
     return value.replace("\\", "\\\\").replace("]", "\\]")
 
 
+def render_community_invitation(labels: dict) -> str:
+    url = labels["community_url"]
+    return "\n\n".join(
+        [
+            f'**{labels["community_line_1"]}**',
+            labels["community_line_2"],
+            f'{labels["community_link_label"]} [{url}]({url})',
+        ]
+    )
+
+
 def extract_article_body(md_text: str) -> str:
     match = ARTICLE_BODY_RE.search(md_text)
     if not match:
@@ -151,7 +162,8 @@ def build_markdown(
             rendered_lines.append(line)
     rendered_body = "\n".join(rendered_lines).strip()
 
-    output = f"{render_frontmatter(article_title, metadata)}\n\n{rendered_body}\n"
+    community_invitation = render_community_invitation(labels)
+    output = f"{render_frontmatter(article_title, metadata)}\n\n{rendered_body}\n\n{community_invitation}\n"
     output_path.write_text(output, encoding="utf-8", newline="\n")
     verify_markdown(output_path, source_images, resolved_assets_dir, labels)
     return output_path, resolved_assets_dir
@@ -169,6 +181,16 @@ def verify_markdown(output_path: Path, source_images, assets_dir: Path | None, l
         raise ValueError("Generated Markdown is missing the language-appropriate introduction heading.")
     if not re.search(rf"^##\s+{re.escape(labels['conclusion'])}\s*$", text, re.MULTILINE):
         raise ValueError("Generated Markdown is missing the language-appropriate conclusion heading.")
+    for required_text in (
+        labels["community_line_1"],
+        labels["community_line_2"],
+        labels["community_link_label"],
+    ):
+        if required_text not in text:
+            raise ValueError(f"Generated Markdown is missing community invitation content: {required_text}")
+    url = labels["community_url"]
+    if f"[{url}]({url})" not in text:
+        raise ValueError("Generated Markdown is missing the correct community invitation link.")
     if source_images:
         if assets_dir is None:
             raise ValueError("Generated Markdown is missing its image assets directory.")

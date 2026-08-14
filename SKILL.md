@@ -82,6 +82,8 @@ Always read [references/human-writing-style.md](references/human-writing-style.m
 - If the user requests several supported languages at once, create and validate a separate article package, DOCX, reader-facing Markdown file, and image-assets folder for every language. Reuse the source images in their original order for each language; do not combine multiple full translations into one DOCX unless the user explicitly requests a bilingual or multilingual document.
 - For Thai output, measure requested length by Thai-script characters. For Traditional Chinese, measure CJK characters. For English, Portuguese, Spanish, Indonesian, and Vietnamese, measure words with Unicode-aware tokenization.
 - Localize introduction, conclusion, metadata labels, captions, keyword phrases, and CTA language throughout the public DOCX and Markdown; do not translate only the article body while leaving English document chrome.
+- Append the localized Discord community invitation automatically after the conclusion CTA in every public DOCX and Markdown deliverable. Use `https://discord.gg/FhSaQfq6rJ` for Portuguese and Spanish, and `https://discord.gg/Agkk96vcfA` for every other supported language.
+- Treat the generated Discord invitation as delivery chrome, not article body. Do not include it in the requested body-length count and do not require authors to place it in the internal article package.
 - If the user wants the rewrite to stay close to the source article's scale, preserve that scale instead of expanding automatically.
 - If no length guidance exists, default to 1500 to 1800 words for long-form SEO pieces.
 - Provide SEO metadata: slug or URL, SEO title, primary and long-tail keywords, meta description, and tags.
@@ -112,6 +114,7 @@ Always read [references/human-writing-style.md](references/human-writing-style.m
 - Treat the script output as the default Word deliverable.
 - Keep the Word deliverable reader-facing: include the title block, SEO metadata, article body, inline source images, and captions; omit the internal Image Plan section entirely.
 - Keep the Markdown deliverable reader-facing: use YAML frontmatter for SEO metadata, add the language-appropriate introduction heading, preserve the remaining H1/H2 structure, `**bold emphasis**`, lists, and links, and omit the internal Image Plan entirely.
+- Keep the existing conclusion CTA, then append the localized three-line Discord invitation as the final content in the file. In DOCX, make the URL a clickable external hyperlink; in Markdown, preserve normal `[URL](URL)` link syntax.
 - Use only the bundled Python DOCX and Markdown scripts for generation and verification.
 - Require both builders' post-save structural verification to pass before delivery.
 
@@ -127,6 +130,7 @@ Always read [references/human-writing-style.md](references/human-writing-style.m
 - Treat image-count failures as planning failures. Add or remove planned images so the package lands in the target range.
 - Before delivery, confirm that source-image markers match the complete source sequence and that each marker sits inside the section discussing the same topic as its surrounding source text.
 - Reopen the generated Markdown and confirm that it contains no `Image Plan` or `SOURCE_IMAGE`, that formatting markers remain intact, and that every extracted image hash matches the source in exact order.
+- Confirm that both public files end with the correct localized Discord invitation and language-specific URL; Portuguese and Spanish must not receive the general-language link, and all other supported languages must not receive the Portuguese/Spanish link.
 - Do not claim compliance from memory. Use the validator output.
 
 ## Return The Result In This Format

@@ -70,6 +70,8 @@ python scripts/build_docx.py --article-package article.md --source-docx source.d
 - Rejects missing, duplicated, swapped, or out-of-range source-image markers.
 - Applies mapped image-plan alt text to the corresponding Word image metadata.
 - Normalizes a conclusion heading such as `Conclusion + CTA`, `结语与 CTA`, or `結語與 CTA` to a clean language-appropriate conclusion title while keeping the CTA paragraph.
+- Appends a localized Discord community invitation after the conclusion CTA. Portuguese and Spanish use `https://discord.gg/FhSaQfq6rJ`; the other supported languages use `https://discord.gg/Agkk96vcfA`.
+- Writes the visible Discord URL as a clickable external Word hyperlink and verifies that hyperlink after reopening the document.
 - Reopens the generated `.docx` and verifies its image count and image binary order before reporting success.
 
 ## Guardrails
@@ -83,3 +85,4 @@ python scripts/build_docx.py --article-package article.md --source-docx source.d
 - If the article package does not parse cleanly, fix the package instead of hand-editing the script output in Word.
 - Treat any post-save structural verification failure as a build failure and fix the article package or builder before delivery.
 - Never append an Image Plan heading, table, checklist, or image-rule block to the final `.docx` unless the user explicitly requests that internal data.
+- Do not put the community invitation into the internal article package or count it toward `Body Length Target`; the builder owns this fixed delivery block.

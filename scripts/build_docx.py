@@ -10,6 +10,7 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.shared import Inches, Pt, RGBColor
 
 
@@ -197,7 +198,53 @@ def get_language_pack(output_language: str):
             "appendix_images": "Hình ảnh phụ lục",
         },
     }
-    return packs.get(language, packs["english"])
+    community_packs = {
+        "traditional_chinese": {
+            "community_line_1": "想要更多福利、遊戲攻略和最新資訊？👉加入我們的 Discord！",
+            "community_line_2": "超多實用內容、專屬福利只在社群內更新",
+            "community_link_label": "🔗邀請連結：",
+            "community_url": "https://discord.gg/Agkk96vcfA",
+        },
+        "english": {
+            "community_line_1": "Want more rewards, game guides, and the latest updates? 👉 Join our Discord!",
+            "community_line_2": "Useful tips and exclusive community benefits are updated only in our server.",
+            "community_link_label": "🔗 Invitation link:",
+            "community_url": "https://discord.gg/Agkk96vcfA",
+        },
+        "portuguese": {
+            "community_line_1": "Quer mais benefícios, guias de jogos e as últimas novidades? 👉 Entre no nosso Discord!",
+            "community_line_2": "Conteúdos úteis e benefícios exclusivos são atualizados somente na comunidade.",
+            "community_link_label": "🔗 Link de convite:",
+            "community_url": "https://discord.gg/FhSaQfq6rJ",
+        },
+        "spanish": {
+            "community_line_1": "¿Quieres más beneficios, guías de juegos y las últimas novedades? 👉 ¡Únete a nuestro Discord!",
+            "community_line_2": "Los mejores consejos y beneficios exclusivos se actualizan solo en la comunidad.",
+            "community_link_label": "🔗 Enlace de invitación:",
+            "community_url": "https://discord.gg/FhSaQfq6rJ",
+        },
+        "thai": {
+            "community_line_1": "อยากรับสิทธิพิเศษ คู่มือเกม และข่าวสารล่าสุดเพิ่มเติมไหม? 👉 เข้าร่วม Discord ของเรา!",
+            "community_line_2": "เคล็ดลับและสิทธิพิเศษเฉพาะจะอัปเดตภายในชุมชนเท่านั้น",
+            "community_link_label": "🔗 ลิงก์เชิญ:",
+            "community_url": "https://discord.gg/Agkk96vcfA",
+        },
+        "indonesian": {
+            "community_line_1": "Ingin mendapatkan lebih banyak benefit, panduan game, dan info terbaru? 👉 Bergabunglah dengan Discord kami!",
+            "community_line_2": "Tips bermanfaat dan benefit eksklusif hanya diperbarui di dalam komunitas.",
+            "community_link_label": "🔗 Tautan undangan:",
+            "community_url": "https://discord.gg/Agkk96vcfA",
+        },
+        "vietnamese": {
+            "community_line_1": "Bạn muốn nhận thêm quyền lợi, hướng dẫn game và tin tức mới nhất? 👉 Tham gia Discord của chúng tôi!",
+            "community_line_2": "Nhiều mẹo hữu ích và quyền lợi độc quyền chỉ được cập nhật trong cộng đồng.",
+            "community_link_label": "🔗 Liên kết mời:",
+            "community_url": "https://discord.gg/Agkk96vcfA",
+        },
+    }
+    selected = dict(packs.get(language, packs["english"]))
+    selected.update(community_packs.get(language, community_packs["english"]))
+    return selected
 
 
 def set_run_font(run, name="Calibri", size=11, bold=False, color=None, italic=False):
@@ -436,7 +483,7 @@ def extract_source_images(source_docx: Path):
     return images
 
 
-def verify_built_docx(output_path: Path, expected_images):
+def verify_built_docx(output_path: Path, expected_images, labels: dict):
     if not output_path.exists() or output_path.stat().st_size == 0:
         raise ValueError(f"Generated DOCX is missing or empty: {output_path}")
 
@@ -447,6 +494,24 @@ def verify_built_docx(output_path: Path, expected_images):
 
     if not any(paragraph.text.strip() for paragraph in built_doc.paragraphs):
         raise ValueError("Generated DOCX contains no readable paragraph text.")
+
+    document_text = "\n".join(paragraph.text for paragraph in built_doc.paragraphs)
+    for required_text in (
+        labels["community_line_1"],
+        labels["community_line_2"],
+        labels["community_link_label"],
+        labels["community_url"],
+    ):
+        if required_text not in document_text:
+            raise ValueError(f"Generated DOCX is missing community invitation content: {required_text}")
+
+    hyperlink_targets = {
+        rel.target_ref
+        for rel in built_doc.part.rels.values()
+        if rel.reltype == RT.HYPERLINK and rel.is_external
+    }
+    if labels["community_url"] not in hyperlink_targets:
+        raise ValueError("Generated DOCX community invitation URL is not a clickable external hyperlink.")
 
     built_images = extract_source_images(output_path)
     if len(built_images) != len(expected_images):
@@ -508,6 +573,44 @@ def add_title_block(doc: Document, title: str, labels: dict):
     set_paragraph_spacing(subtitle, before=0, after=10, line=1.15)
     run = subtitle.add_run(labels["title_subtitle"])
     set_run_font(run, size=10, color="#5B6573")
+
+
+def add_hyperlink(paragraph, text: str, url: str):
+    relationship_id = paragraph.part.relate_to(url, RT.HYPERLINK, is_external=True)
+    hyperlink = OxmlElement("w:hyperlink")
+    hyperlink.set(qn("r:id"), relationship_id)
+
+    run = OxmlElement("w:r")
+    run_properties = OxmlElement("w:rPr")
+    color = OxmlElement("w:color")
+    color.set(qn("w:val"), "0563C1")
+    underline = OxmlElement("w:u")
+    underline.set(qn("w:val"), "single")
+    run_properties.append(color)
+    run_properties.append(underline)
+    run.append(run_properties)
+
+    text_element = OxmlElement("w:t")
+    text_element.text = text
+    run.append(text_element)
+    hyperlink.append(run)
+    paragraph._p.append(hyperlink)
+    return hyperlink
+
+
+def add_community_invitation(doc: Document, labels: dict):
+    first = doc.add_paragraph()
+    set_paragraph_spacing(first, before=14, after=4, line=1.25)
+    set_run_font(first.add_run(labels["community_line_1"]), bold=True)
+
+    second = doc.add_paragraph()
+    set_paragraph_spacing(second, before=0, after=4, line=1.25)
+    set_run_font(second.add_run(labels["community_line_2"]))
+
+    link_paragraph = doc.add_paragraph()
+    set_paragraph_spacing(link_paragraph, before=0, after=6, line=1.25)
+    set_run_font(link_paragraph.add_run(f'{labels["community_link_label"]} '))
+    add_hyperlink(link_paragraph, labels["community_url"], labels["community_url"])
 
 
 def add_metadata_table(doc: Document, metadata, labels: dict):
@@ -704,8 +807,10 @@ def build_docx(article_package: Path, output_path: Path, source_docx: Path | Non
     for section in article_sections:
         add_section_blocks(doc, section, labels, source_images_by_index, image_alt_by_index)
 
+    add_community_invitation(doc, labels)
+
     doc.save(output_path)
-    verify_built_docx(output_path, source_images)
+    verify_built_docx(output_path, source_images, labels)
 
 
 def main():

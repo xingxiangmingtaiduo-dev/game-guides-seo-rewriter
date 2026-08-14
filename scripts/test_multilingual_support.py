@@ -115,6 +115,17 @@ def main() -> None:
             assert labels["introduction"] == introduction
             assert labels["conclusion"] == conclusion
             assert labels["metadata_heading"] == metadata_heading
+            expected_community_url = (
+                "https://discord.gg/FhSaQfq6rJ"
+                if normalized in {"portuguese", "spanish"}
+                else "https://discord.gg/Agkk96vcfA"
+            )
+            wrong_community_url = (
+                "https://discord.gg/Agkk96vcfA"
+                if normalized in {"portuguese", "spanish"}
+                else "https://discord.gg/FhSaQfq6rJ"
+            )
+            assert labels["community_url"] == expected_community_url
 
             package = root / f"{normalized}.md"
             docx_path = root / f"{normalized}.docx"
@@ -140,8 +151,21 @@ def main() -> None:
             assert introduction in docx_text and conclusion in docx_text and metadata_heading in docx_text
             assert f"## {introduction}" in markdown_text and f"## {conclusion}" in markdown_text
             assert "Image Plan" not in docx_text and "Image Plan" not in markdown_text
+            assert labels["community_line_1"] in docx_text and labels["community_line_2"] in docx_text
+            assert labels["community_line_1"] in markdown_text and labels["community_line_2"] in markdown_text
+            assert expected_community_url in docx_text and wrong_community_url not in docx_text
+            assert f"[{expected_community_url}]({expected_community_url})" in markdown_text
+            assert wrong_community_url not in markdown_text
 
-    print("PASS: 7 multilingual DOCX/Markdown language packs")
+            built_doc = Document(docx_path)
+            hyperlink_targets = {
+                rel.target_ref
+                for rel in built_doc.part.rels.values()
+                if rel.is_external and rel.reltype.endswith("/hyperlink")
+            }
+            assert expected_community_url in hyperlink_targets
+
+    print("PASS: 7 multilingual DOCX/Markdown language packs with localized Discord invitations")
 
 
 if __name__ == "__main__":

@@ -33,6 +33,7 @@ The final package should pass these shared rules unless the user explicitly asks
 - Avoid stock AI phrases, duplicated sentences, repetitive section previews and recaps, excessive exact-match keywords, and mechanical transition chains.
 - Do not fabricate first-person experience or anecdotes as a shortcut to sounding human.
 - Deliver a reader-facing Markdown copy with preserved headings, emphasis, lists, and image positions. Keep Image Plan and source markers private.
+- Keep the editorial CTA in the conclusion, then let the public builders append the localized Discord invitation after it. This generated block is excluded from body-length validation.
 
 ## Profile-specific expectations
 
@@ -113,6 +114,7 @@ python scripts/validate_article_package.py --article-package article.md --profil
 - Confirm that the public Markdown includes language-appropriate introduction and conclusion headings.
 - Replace every source marker with a relative image link and extract images to the paired assets folder.
 - Reject output containing `Image Plan`, `SOURCE_IMAGE`, missing image links, or altered image order.
+- Confirm that the final Markdown invitation uses `FhSaQfq6rJ` only for Portuguese and Spanish, and `Agkk96vcfA` for the other supported languages.
 
 ### Description too short or too long
 

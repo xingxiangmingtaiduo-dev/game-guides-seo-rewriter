@@ -2,7 +2,7 @@
 
 ## SEO Metadata
 
-- Slug: panduan-afk-kick-a-lucky-block
+- Slug: panduan-afk-kick-a-lucky-block-id
 - SEO Title: Panduan AFK Kick a Lucky Block: Kekuatan dan Coin
 - Primary Keyword: Panduan AFK Kick a Lucky Block
 - Secondary Keywords: Kick a Lucky Block AFK, coin Kick a Lucky Block, latihan kekuatan Roblox, cloud phone

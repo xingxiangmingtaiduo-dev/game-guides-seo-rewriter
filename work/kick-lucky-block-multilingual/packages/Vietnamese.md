@@ -2,7 +2,7 @@
 
 ## SEO Metadata
 
-- Slug: huong-dan-afk-kick-a-lucky-block
+- Slug: huong-dan-afk-kick-a-lucky-block-vi
 - SEO Title: Hướng dẫn AFK Kick a Lucky Block: Sức mạnh và coin
 - Primary Keyword: Hướng dẫn AFK Kick a Lucky Block
 - Secondary Keywords: Kick a Lucky Block AFK, coin Kick a Lucky Block, luyện sức mạnh Roblox, Roblox đám mây

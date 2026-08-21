@@ -2,7 +2,7 @@
 
 ## SEO Metadata
 
-- Slug: guia-afk-kick-a-lucky-block
+- Slug: guia-afk-kick-a-lucky-block-pt
 - SEO Title: Guia AFK de Kick a Lucky Block: força e coins
 - Primary Keyword: Guia AFK de Kick a Lucky Block
 - Secondary Keywords: Kick a Lucky Block AFK, como ganhar coins em Kick a Lucky Block, treino de força Roblox, Roblox na nuvem

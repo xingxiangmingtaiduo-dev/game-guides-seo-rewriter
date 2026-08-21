@@ -6,7 +6,7 @@ from pathlib import Path
 
 from docx import Document
 
-from build_docx import build_docx, get_language_pack, normalize_output_language
+from build_docx import build_docx, get_language_pack, localized_slug, normalize_output_language
 from build_markdown import build_markdown
 from validate_article_package import count_words, normalize_output_language as normalize_validator_language
 from validate_article_package import parse_article_package, validate
@@ -45,13 +45,22 @@ VALIDATION_TEXT = {
 
 def article_package(language: str) -> str:
     what_heading, ugphone_heading, conclusion_heading, cta = VALIDATION_TEXT[language]
+    slug_suffix = {
+        "Traditional Chinese": "tw",
+        "English": "en",
+        "Portuguese": "pt",
+        "Spanish": "es",
+        "Thai": "th",
+        "Indonesian": "id",
+        "Vietnamese": "vi",
+    }[language]
     return f"""# Title
 
 Multilingual smoke test
 
 ## SEO Metadata
 
-- Slug: multilingual-smoke-test
+- Slug: multilingual-smoke-test-{slug_suffix}
 - SEO Title: Multilingual smoke test
 - Primary Keyword: smoke test
 - Meta Description: This metadata exists to verify localized document labels and multilingual output without exposing internal image planning data.
@@ -112,6 +121,16 @@ def main() -> None:
             assert normalize_output_language(language) == normalized
             assert normalize_validator_language(language) == normalized
             labels = get_language_pack(language)
+            expected_suffix = {
+                "traditional_chinese": "tw",
+                "english": "en",
+                "portuguese": "pt",
+                "spanish": "es",
+                "thai": "th",
+                "indonesian": "id",
+                "vietnamese": "vi",
+            }[normalized]
+            assert localized_slug("multilingual-smoke-test", language) == f"multilingual-smoke-test-{expected_suffix}"
             assert labels["introduction"] == introduction
             assert labels["conclusion"] == conclusion
             assert labels["metadata_heading"] == metadata_heading
@@ -140,16 +159,23 @@ def main() -> None:
                 "ugphone_value_section",
                 "ugphone_tutorial_or_flow",
                 "cta_present",
+                "slug_format",
             }
             failed = [check for check in checks if check["name"] in required and not check["passed"]]
             assert not failed, (language, failed)
             build_docx(package, docx_path, None)
             build_markdown(package, markdown_path)
 
-            docx_text = "\n".join(paragraph.text for paragraph in Document(docx_path).paragraphs)
+            built_document = Document(docx_path)
+            docx_text = "\n".join(
+                [paragraph.text for paragraph in built_document.paragraphs]
+                + [cell.text for table in built_document.tables for row in table.rows for cell in row.cells]
+            )
             markdown_text = markdown_path.read_text(encoding="utf-8")
             assert introduction in docx_text and conclusion in docx_text and metadata_heading in docx_text
             assert f"## {introduction}" in markdown_text and f"## {conclusion}" in markdown_text
+            assert f'slug: "multilingual-smoke-test-{expected_suffix}"' in markdown_text
+            assert f"multilingual-smoke-test-{expected_suffix}" in docx_text, docx_text
             assert "Image Plan" not in docx_text and "Image Plan" not in markdown_text
             assert labels["community_line_1"] in docx_text and labels["community_line_2"] in docx_text
             assert labels["community_line_1"] in markdown_text and labels["community_line_2"] in markdown_text
@@ -157,10 +183,9 @@ def main() -> None:
             assert f"[{expected_community_url}]({expected_community_url})" in markdown_text
             assert wrong_community_url not in markdown_text
 
-            built_doc = Document(docx_path)
             hyperlink_targets = {
                 rel.target_ref
-                for rel in built_doc.part.rels.values()
+                for rel in built_document.part.rels.values()
                 if rel.is_external and rel.reltype.endswith("/hyperlink")
             }
             assert expected_community_url in hyperlink_targets

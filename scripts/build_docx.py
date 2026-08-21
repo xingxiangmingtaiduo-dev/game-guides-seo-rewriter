@@ -18,6 +18,28 @@ def metadata_to_dict(metadata):
     return {key: value for key, value in metadata}
 
 
+LANGUAGE_SLUG_SUFFIXES = {
+    "chinese": "cn",
+    "traditional_chinese": "tw",
+    "english": "en",
+    "portuguese": "pt",
+    "spanish": "es",
+    "thai": "th",
+    "indonesian": "id",
+    "vietnamese": "vi",
+}
+
+
+def localized_slug(slug: str, output_language: str) -> str:
+    """Return a lowercase slug with exactly one supported language suffix."""
+    normalized_language = normalize_output_language(output_language)
+    suffix = LANGUAGE_SLUG_SUFFIXES.get(normalized_language)
+    if not suffix:
+        return slug
+    base = re.sub(r"-(?:cn|tw|en|pt|es|th|id|vi)$", "", slug.strip().lower())
+    return f"{base}-{suffix}" if base else suffix
+
+
 def normalize_output_language(value: str) -> str:
     normalized = value.strip().lower()
     aliases = {
@@ -787,6 +809,10 @@ def build_docx(article_package: Path, output_path: Path, source_docx: Path | Non
     article_title, metadata, article_sections, image_plan = parse_article_package(article_package.read_text(encoding="utf-8"))
     metadata_map = metadata_to_dict(metadata)
     labels = get_language_pack(metadata_map.get("Output Language", "english"))
+    metadata = [
+        (key, localized_slug(value, metadata_map.get("Output Language", "english")) if key.casefold() == "slug" else value)
+        for key, value in metadata
+    ]
     source_images = extract_source_images(source_docx) if source_docx else []
     if source_images:
         validate_source_image_markers(source_images, article_sections)

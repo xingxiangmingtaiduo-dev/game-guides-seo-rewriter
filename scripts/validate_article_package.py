@@ -171,6 +171,18 @@ def choose_length_metric(language: str) -> str:
     return "word" if language in {"english", "spanish", "portuguese", "french", "german", "italian", "indonesian", "vietnamese"} else "cjk"
 
 
+LANGUAGE_SLUG_SUFFIXES = {
+    "chinese": "cn",
+    "traditional_chinese": "tw",
+    "english": "en",
+    "portuguese": "pt",
+    "spanish": "es",
+    "thai": "th",
+    "indonesian": "id",
+    "vietnamese": "vi",
+}
+
+
 def count_length_units(text: str, metric: str) -> int:
     if metric == "word":
         return count_words(text)
@@ -566,7 +578,13 @@ def validate(data: dict, profile: str):
         ),
         "CTA phrase scan",
     )
-    add_check("slug_format", bool(re.fullmatch(r"[a-z0-9-]+", slug)), f"Slug: {slug}")
+    expected_suffix = LANGUAGE_SLUG_SUFFIXES.get(output_language)
+    slug_has_language_suffix = bool(expected_suffix and slug.endswith(f"-{expected_suffix}"))
+    add_check(
+        "slug_format",
+        bool(re.fullmatch(r"[a-z0-9-]+", slug)) and slug_has_language_suffix,
+        f"Slug: {slug}; expected language suffix: -{expected_suffix or 'n/a'}",
+    )
     add_check("meta_description_length", 120 <= len(meta_desc) <= 160, f"Meta description length: {len(meta_desc)}")
     add_check("no_price_mentions", not contains_price_reference(article_text), "Price wording scan")
     add_check("no_competitor_mentions", not contains_competitor_reference(article_text), "Competitor wording scan")

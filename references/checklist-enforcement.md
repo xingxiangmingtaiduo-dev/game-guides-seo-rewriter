@@ -26,7 +26,7 @@ The final package should pass these shared rules unless the user explicitly asks
 - Include UgPhone pain-point analysis and at least one practical value or step-by-step section.
 - End with a clear CTA.
 - Keep the conclusion heading clean: use `Conclusion`, `结语`, `結語`, or the natural output-language equivalent without adding `CTA` to the heading.
-- Slug should be lowercase with hyphens.
+- Slug should be lowercase with hyphens and end in the output language suffix: Simplified Chinese `-cn`, Traditional Chinese `-tw`, English `-en`, Portuguese `-pt`, Spanish `-es`, Thai `-th`, Indonesian `-id`, or Vietnamese `-vi`.
 - Meta description should stay in the `120-160` character band.
 - Avoid competitor comparisons and price mentions.
 - Keep the Markdown structure valid and predictable.
@@ -131,6 +131,7 @@ python scripts/validate_article_package.py --article-package article.md --profil
 - If the source is Chinese but the requested output is English, Spanish, or another language, write the article in the requested language rather than translating section by section mechanically.
 - Add `Output Language` to metadata so the validator can use word-based checks for Latin-script outputs.
 - Localize the introduction and conclusion headings, SEO document labels, image captions, keywords, and CTA in the requested language. Do not leave English interface text around an otherwise translated article.
+- Give each language version its matching Slug suffix. Do not reuse the same unsuffixed Slug across multilingual deliverables.
 
 ## Notes on metrics
 

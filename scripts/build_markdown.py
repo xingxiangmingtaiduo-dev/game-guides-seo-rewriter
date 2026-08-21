@@ -10,6 +10,7 @@ from pathlib import Path
 from build_docx import (
     extract_source_images,
     get_language_pack,
+    localized_slug,
     metadata_to_dict,
     parse_article_package,
 )
@@ -115,6 +116,10 @@ def build_markdown(
     body = extract_article_body(md_text)
     metadata_map = metadata_to_dict(metadata)
     labels = get_language_pack(metadata_map.get("Output Language", "english"))
+    metadata = [
+        (key, localized_slug(value, metadata_map.get("Output Language", "english")) if key.casefold() == "slug" else value)
+        for key, value in metadata
+    ]
     body = add_introduction_heading(body, labels["introduction"])
     body = "\n".join(
         f"## {labels['conclusion']}" if CONCLUSION_RE.fullmatch(line.strip()) else line

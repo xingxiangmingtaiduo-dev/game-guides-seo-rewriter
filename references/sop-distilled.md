@@ -42,7 +42,7 @@ Example pattern:
 - Build titles from `Game Name + hot keyword + year + concrete benefit`.
 - Keep the SEO title around 60 characters when possible.
 - Include the game name, main keyword, and year in the title.
-- Write a lowercase slug with hyphens.
+- Write a lowercase slug with hyphens. For localized versions, append the supported language suffix (`-cn`, `-tw`, `-en`, `-pt`, `-es`, `-th`, `-id`, or `-vi`).
 - Use 1 primary keyword plus 2 to 5 precise long-tail keywords.
 - Write a meta description of about 120 to 160 characters.
 - Use tags that normally include the game name plus brand terms such as `Roblox`, `Cloud Phone`, and `UgPhone Tutorial` when they fit.

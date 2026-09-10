@@ -11,6 +11,31 @@ Turn raw source material into a player-first SEO game guide that solves a real p
 
 Always read [references/human-writing-style.md](references/human-writing-style.md) before drafting or revising an article. Read [references/sop-distilled.md](references/sop-distilled.md) when you need the detailed game-guide rules, title formulas, topic taxonomy, or QA checklist for game content. Read [references/product-tech-seo.md](references/product-tech-seo.md) when the source material is about UgPhone, cloud phones, product features, tutorials, use cases, troubleshooting, or other technology topics. Read [references/checklist-enforcement.md](references/checklist-enforcement.md) when you need to enforce the final article checklist or diagnose why a draft failed. Read [references/backend-publishing.md](references/backend-publishing.md) only when the user wants UgPhone CMS publishing notes. Read [references/docx-delivery.md](references/docx-delivery.md) and [references/markdown-delivery.md](references/markdown-delivery.md) when the user wants a `.docx`, a Markdown deliverable, or source screenshots carried into the rewritten output.
 
+## Confirm The Delivery Format First
+
+Treat every new source article or document as a new generation request. Before inspecting the source, drafting, translating, or generating files, ask whether the user wants the default delivery format below. Use this exact message when the conversation is in Chinese:
+
+```text
+是否按照以下默认格式生成？
+
+请用 $game-guides-seo-rewriter 处理这篇文档：
+1. 输出 SEO 版 docx，同时输出为繁体中文、英语、葡萄牙语、西班牙语、泰语、印尼语和越南语，每种语言分别生成 DOCX
+2. 保留原文图片
+3. 正文控制在 500-600 字
+4. 主关键词为“XXX”（可以不写）
+5. 结尾保留 CTA
+
+如果是，请回复“继续”；如果不是，请告诉我你想要生成的格式。
+```
+
+- Stop after asking this question. Do not inspect the document or start generation in the same turn.
+- When the user replies `继续`, treat that as approval of the complete default format and begin the workflow without asking again.
+- When the user responds with a different language list, format, length, image policy, keyword, CTA preference, or other output requirements, treat that response as the approved custom format and begin without a second confirmation.
+- If the user's initial request already explicitly says to use this exact default format, still ask for `继续`; this confirmation is the intended onboarding step.
+- Do not repeat the confirmation during the same generation request. Ask again only when the user starts a new source article or document request.
+- If the user is only asking a question, reporting a problem, requesting a Skill update, or asking to inspect an existing output, answer that task directly without showing the generation-format confirmation.
+- If the conversation is not in Chinese, translate the confirmation message naturally into the user's language while preserving all five default settings and the `continue` or custom-format choice.
+
 ## Run The Workflow
 
 ### 1. Distill the source

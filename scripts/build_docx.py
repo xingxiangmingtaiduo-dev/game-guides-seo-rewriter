@@ -495,6 +495,34 @@ def parse_article_package(md_text: str):
     return article_title, metadata, article_sections, image_plan
 
 
+def validate_package_layout(md_text: str):
+    """Fail early instead of turning malformed translated Markdown into styled body text."""
+    lines = md_text.splitlines()
+    in_article = False
+    headings = []
+    for index, line in enumerate(lines):
+        if line.strip() == "## Article Body":
+            in_article = True
+            continue
+        if line.strip() == "## Image Plan":
+            in_article = False
+        if not in_article:
+            continue
+        if re.match(r"^#{1,6}\s+\S", line):
+            headings.append((index, line))
+    bad = []
+    for index, line in headings:
+        if len(line.strip()) > 100 or re.search(r"[.!?؟。！？][^\s]", line):
+            bad.append(line.strip())
+        if index + 1 < len(lines) and lines[index + 1].strip():
+            bad.append(line.strip())
+    if bad:
+        raise ValueError(
+            "Malformed article package: heading and paragraph appear to be merged or lack a blank line: "
+            + " | ".join(bad[:3])
+        )
+
+
 def extract_source_images(source_docx: Path):
     source_doc = Document(source_docx)
     images = []
@@ -806,7 +834,9 @@ def add_image_plan_table(doc: Document, image_plan, labels: dict):
 
 
 def build_docx(article_package: Path, output_path: Path, source_docx: Path | None):
-    article_title, metadata, article_sections, image_plan = parse_article_package(article_package.read_text(encoding="utf-8"))
+    package_text = article_package.read_text(encoding="utf-8")
+    validate_package_layout(package_text)
+    article_title, metadata, article_sections, image_plan = parse_article_package(package_text)
     metadata_map = metadata_to_dict(metadata)
     labels = get_language_pack(metadata_map.get("Output Language", "english"))
     metadata = [

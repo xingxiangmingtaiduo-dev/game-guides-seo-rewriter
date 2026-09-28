@@ -85,6 +85,29 @@ def marker_sequence(article_body: str) -> list[int]:
     return markers
 
 
+def validate_package_layout(md_text: str):
+    lines = md_text.splitlines()
+    in_article = False
+    bad = []
+    for index, line in enumerate(lines):
+        if line.strip() == "## Article Body":
+            in_article = True
+            continue
+        if line.strip() == "## Image Plan":
+            in_article = False
+        if not in_article or not re.match(r"^#{1,6}\s+\S", line):
+            continue
+        if len(line.strip()) > 100 or re.search(r"[.!?؟。！？][^\s]", line):
+            bad.append(line.strip())
+        if index + 1 < len(lines) and lines[index + 1].strip():
+            bad.append(line.strip())
+    if bad:
+        raise ValueError(
+            "Malformed article package: heading and paragraph appear to be merged or lack a blank line: "
+            + " | ".join(bad[:3])
+        )
+
+
 def render_frontmatter(article_title: str, metadata) -> str:
     rows = [("title", article_title)]
     seen = {"title"}
@@ -109,6 +132,7 @@ def build_markdown(
     assets_dir: Path | None = None,
 ) -> tuple[Path, Path | None]:
     md_text = article_package.read_text(encoding="utf-8")
+    validate_package_layout(md_text)
     article_title, metadata, _, image_plan = parse_article_package(md_text)
     if not article_title:
         raise ValueError("Article package is missing the Article Body H1 title.")

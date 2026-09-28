@@ -590,6 +590,48 @@ def validate(data: dict, profile: str):
     add_check("no_competitor_mentions", not contains_competitor_reference(article_text), "Competitor wording scan")
     add_check("primary_occurrence_scan", primary_occurrences > 0, f"Primary keyword occurrences in body: {primary_occurrences}")
 
+    # Structural guardrails for multilingual packages. These catch the two most
+    # expensive failure modes before a malformed DOCX is built: a translated
+    # heading joined to its paragraph, and a batch of screenshots detached from
+    # the text they illustrate.
+    article_lines = article_text.splitlines()
+    heading_lines = [(idx, line) for idx, line in enumerate(article_lines) if re.match(r"^#{1,6}\s+\S", line)]
+    merged_heading_lines = [
+        line for _, line in heading_lines
+        if len(line.strip()) > 100 or re.search(r"[.!?؟。！？][^\s]", line)
+    ]
+    headings_with_bad_spacing = [
+        line for idx, line in heading_lines
+        if idx + 1 < len(article_lines) and article_lines[idx + 1].strip()
+    ]
+    add_check(
+        "heading_line_integrity",
+        not merged_heading_lines and not headings_with_bad_spacing,
+        "Heading lines are separated from body paragraphs"
+        if not merged_heading_lines and not headings_with_bad_spacing
+        else f"Merged or non-separated headings: {len(merged_heading_lines) + len(headings_with_bad_spacing)}",
+    )
+
+    marker_matches = list(re.finditer(r"^\s*<!--\s*SOURCE_IMAGE\s*:\s*(\d+)\s*-->\s*$", article_text, re.IGNORECASE | re.MULTILINE))
+    marker_numbers = [int(match.group(1)) for match in marker_matches]
+    marker_sequence_ok = marker_numbers == list(range(1, len(marker_numbers) + 1)) and len(marker_numbers) == len(set(marker_numbers))
+    longest_marker_run = 0
+    current_marker_run = 0
+    for line in article_lines:
+        if re.fullmatch(r"\s*<!--\s*SOURCE_IMAGE\s*:\s*\d+\s*-->\s*", line, re.IGNORECASE):
+            current_marker_run += 1
+            longest_marker_run = max(longest_marker_run, current_marker_run)
+        else:
+            current_marker_run = 0
+    conclusion_positions = [idx for idx, line in enumerate(article_lines) if re.match(r"^##\s+(Conclusion|Conclusão|Conclusión|结语|結語|结论|結論|สรุป|Kesimpulan|Kết luận)\s*$", line, re.IGNORECASE)]
+    last_marker_line = max((idx for idx, line in enumerate(article_lines) if re.fullmatch(r"\s*<!--\s*SOURCE_IMAGE\s*:\s*\d+\s*-->\s*", line, re.IGNORECASE)), default=-1)
+    markers_before_conclusion = not conclusion_positions or last_marker_line < conclusion_positions[0]
+    add_check(
+        "source_marker_placement",
+        marker_sequence_ok and longest_marker_run <= 3 and markers_before_conclusion,
+        f"Markers: {marker_numbers}; longest consecutive run: {longest_marker_run}",
+    )
+
     return checks
 
 

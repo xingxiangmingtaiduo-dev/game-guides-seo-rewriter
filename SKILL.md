@@ -7,6 +7,28 @@ description: Rewrite game guides, reviews, and UgPhone-related source documents 
 
 Use the source as factual material and produce a reader-first article. Keep the writing direct, the layout simple, and one search intent per article.
 
+## Required format confirmation
+
+For every new request to generate an SEO article from a source document, ask this question first and stop:
+
+```text
+是否按照以下默认格式生成？
+
+请用 SEO Docx Rewriter 处理这篇文档：
+
+1. 输出 SEO 版 DOCX，同时输出为繁体中文、英语、葡萄牙语、西班牙语、泰语、印尼语和越南语，每种语言分别生成 DOCX
+2. 保留原文图片
+3. 正文控制在 500-600 字
+4. 主关键词为“XXX”（可以不写）
+5. 结尾保留 CTA
+
+如果是，请回复“继续”；如果不是，请告诉我你想要生成的格式。
+```
+
+Do not inspect the source document, draft, translate, validate, or create files before the user replies. Treat `继续` as approval of all five defaults. Treat any other response that specifies languages, format, length, image policy, keyword, or CTA as the approved custom format and proceed without asking the same confirmation again. Ask this confirmation again only when the user starts a new source-article generation request.
+
+Do not use this confirmation for questions, status checks, existing-output reviews, bug reports, or requests to update this Skill.
+
 ## Before drafting
 
 - Read `references/human-writing-style.md` and `references/sop-distilled.md` for game articles.
